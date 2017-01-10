@@ -1,0 +1,63 @@
+<openerp>
+    <data>
+        <!--Member Application Numbers-->
+        <record model = 'ir.sequence.type' id = 'seq_type_microfinance_member_app_id'>
+          <field name = "name">Member Application Numbers</field>
+          <field name = "code">microfinance.member.application</field>
+        </record>
+        <record model = "ir.sequence" id = "seq_microfinance_member_app_id">
+          <field name = "name">Member Application Numbers</field>
+          <field name = "code">microfinance.member.application</field>
+          <field name = "prefix">MEMBER_APP</field>
+          <field name = "padding">4</field>
+        </record>
+
+        <!--Member Application Numbers-->
+        <record model = 'ir.sequence.type' id = 'seq_type_microfinance_group_app_id'>
+          <field name = "name">Group Application Numbers</field>
+          <field name = "code">microfinance.group.application</field>
+        </record>
+        <record model = "ir.sequence" id = "seq_microfinance_group_app_id">
+          <field name = "name">Group Application Numbers</field>
+          <field name = "code">microfinance.group.application</field>
+          <field name = "prefix">GROUP_APP</field>
+          <field name = "padding">4</field>
+        </record>
+
+        <!--Member Application Numbers-->
+        <record model = 'ir.sequence.type' id = 'seq_type_microfinance_member_id'>
+          <field name = "name">Microfinance Member Numbers</field>
+          <field name = "code">microfinance.member</field>
+        </record>
+        <record model = "ir.sequence" id = "seq_microfinance_member_id">
+          <field name = "name">Member Numbers</field>
+          <field name = "code">microfinance.member</field>
+          <field name = "prefix">MEMBER</field>
+          <field name = "padding">4</field>
+        </record>
+
+        <!--Member Application Numbers-->
+        <record model = 'ir.sequence.type' id = 'seq_type_microfinance_group_id'>
+          <field name = "name">Microfinance Group Numbers</field>
+          <field name = "code">microfinance.group</field>
+        </record>
+        <record model = "ir.sequence" id = "seq_microfinance_group_id">
+          <field name = "name">Group Numbers</field>
+          <field name = "code">microfinance.group</field>
+          <field name = "prefix">GROUP</field>
+          <field name = "padding">4</field>
+        </record>
+
+        <!--Loan Application Numbers-->
+        <record model = 'ir.sequence.type' id = 'seq_type_microfinance_loan_app_id'>
+          <field name = "name">Loan Application Numbers</field>
+          <field name = "code">microfinance.loan.application</field>
+        </record>
+        <record model = "ir.sequence" id = "seq_microfinance_loan_app_id">
+          <field name = "name">Loan Application Numbers</field>
+          <field name = "code">microfinance.loan.application</field>
+          <field name = "prefix">LOANAPP</field>
+          <field name = "padding">4</field>
+        </record>
+    </data>
+</openerp>
