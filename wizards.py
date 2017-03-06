@@ -75,3 +75,13 @@ class microfinance_loan_posting(models.TransientModel):
             'transaction_type':'loan','entryno':entry_no})
         '''
 
+class microfinance_member_application_wizard(models.TransientModel):
+    _name = 'microfinance.member.application.wizard'
+
+    member_application = fields.Many2one('microfinance.member.application')
+    paying_bank = fields.Many2one('res.bank')
+    amount = fields.Float()
+    checklist_items = fields.One2many('microfinance.membership.checklist')
+
+
+

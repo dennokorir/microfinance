@@ -59,5 +59,17 @@
           <field name = "prefix">LOANAPP</field>
           <field name = "padding">4</field>
         </record>
+
+        <!--Table Session Numbers-->
+        <record model = 'ir.sequence.type' id = 'seq_type_microfinance_table_session_id'>
+          <field name = "name">Table Session Numbers</field>
+          <field name = "code">microfinance.table.session</field>
+        </record>
+        <record model = "ir.sequence" id = "seq_microfinance_table_session_id">
+          <field name = "name">Table Session Numbers</field>
+          <field name = "code">microfinance.table.session</field>
+          <field name = "prefix">SESSION</field>
+          <field name = "padding">4</field>
+        </record>
     </data>
 </openerp>

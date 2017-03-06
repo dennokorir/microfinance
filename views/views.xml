@@ -5,14 +5,22 @@
             <field name = 'model'>microfinance.member.application</field>
             <field name = 'arch' type = 'xml'>
                 <form>
-                    <header></header>
+                    <header>
+                        <button name = 'validate_membership' string = 'Validate Membership' type = 'object' confirm = 'Validate Membership?' class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['draft'])]}"/>
+                        <button name = 'create_member' type = 'object' string = "Create Member" class = 'oe_highlight' confirm = 'Create Member?' attrs="{'invisible': [('state', 'not in', ['ready'])]}"/>
+                        <field name = 'state' widget = 'statusbar'/>
+                    </header>
                     <sheet>
                         <group>
                             <group>
+                                <field name = 'no'/>
                                 <field name = 'name'/>
-                                <field name = 'member_name'/>
                                 <field name = 'application_date'/>
-                                <field name = 'employer_code'/>
+                                <field name = 'group_id'/>
+                                <field name = 'created'/>
+                                <field name = 'table_session_id' string = 'Group Meeting No.'/>
+                                <field name = 'user_id'/>
+                                <!--<field name = 'employer_code'/>-->
                             </group>
                             <group>
                                 <field name = 'id_no'/>
@@ -23,8 +31,34 @@
                                 <field name = 'email'/>
                             </group>
                         </group>
+                        <notebook>
+                            <page string = 'Membership Checklist'>
+                                <field name = 'membership_checklist'>
+                                    <tree editable = 'bottom'>
+                                        <field name = 'name'/>
+                                        <field name = 'account'/>
+                                        <field name = 'amount' sum = 'amount'/>
+                                        <field name = 'paid' sum = 'paid'/>
+                                        <field name = 'balance' sum = 'balance'/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
+            </field>
+        </record>
+
+        <record model = 'ir.ui.view' id = 'microfinance_member_application_tree'>
+            <field name = 'name'>microfinance.member.application.list</field>
+            <field name = 'model'>microfinance.member.application</field>
+            <field name = 'arch' type = 'xml'>
+                <tree>
+                    <field name = 'no'/>
+                    <field name = 'name'/>
+                    <field name = 'mobile'/>
+                    <field name = 'email'/>
+                </tree>
             </field>
         </record>
 
@@ -33,13 +67,17 @@
             <field name = 'model'>microfinance.group.application</field>
             <field name = 'arch' type = 'xml'>
                 <form>
-                    <header></header>
+                    <header>
+                        <button name = 'create_group' type = 'object' string = 'Create Group' class = 'oe_highlight' confirm = 'Create Group?'/>
+                        <field name = 'state' widget = 'statusbar'/>
+                    </header>
                     <sheet>
                         <group>
                             <group string = 'General'>
-                               <field name = 'name'/>
+                               <field name = 'no'/>
                                <field name = 'application_date'/>
-                               <field name = 'group_name'/>
+                               <field name = 'name'/>
+                               <field name = 'created'/>
                             </group>
                             <group string = 'Group Information'>
                                 <field name = 'reg_no'/>
@@ -58,13 +96,12 @@
                         <notebook>
                             <page string = 'Group Members'>
                                 <field name = 'group_members'>
-                                    <tree>
-                                        <field name = 'designation'/>
+                                    <tree editable = 'bottom'>
+                                        <field name = 'gender'/>
                                         <field name = 'name'/>
                                         <field name = 'dob'/>
                                         <field name = 'id_no'/>
                                         <field name = 'mobile_no'/>
-                                        <field name = 'signature'/>
                                     </tree>
                                 </field>
                             </page>
@@ -74,26 +111,14 @@
             </field>
         </record>
 
-        <record model = 'ir.ui.view' id = 'microfinance_member_application_tree'>
-            <field name = 'name'>microfinance.member.application.list</field>
-            <field name = 'model'>microfinance.member.application</field>
-            <field name = 'arch' type = 'xml'>
-                <tree>
-                    <field name = 'name'/>
-                    <field name = 'member_name'/>
-                    <field name = 'mobile'/>
-                    <field name = 'email'/>
-                </tree>
-            </field>
-        </record>
 
         <record model = 'ir.ui.view' id = 'microfinance_group_application_tree'>
             <field name = 'name'>Group Applications</field>
             <field name = 'model'>microfinance.group.application</field>
             <field name = 'arch' type = 'xml'>
                 <tree>
+                    <field name = 'no'/>
                     <field name = 'name'/>
-                    <field name = 'group_name'/>
                     <field name = 'reg_no'/>
                     <field name = 'constituency'/>
                     <field name = 'district'/>
@@ -107,15 +132,18 @@
             <field name = 'model'>microfinance.member</field>
             <field name = 'arch' type = 'xml'>
                 <form>
-                    <header></header>
+                    <header>
+                        <field name = 'state' widget = 'statusbar'/>
+                    </header>
                     <sheet>
                         <group>
                             <group>
+                                <field name = 'no'/>
                                 <field name = 'name'/>
-                                <field name = 'member_name'/>
                                 <field name = 'registration_date'/>
-                                <field name = 'employer_code'/>
-                                <field name = 'staff_no'/>
+                                <field name = 'group_id'/>
+                                <!--<field name = 'employer_code'/>
+                                <field name = 'staff_no'/>-->
                             </group>
                             <group>
                                 <field name = 'id_no'/>
@@ -152,8 +180,8 @@
             <field name = 'model'>microfinance.member</field>
             <field name = 'arch' type = 'xml'>
                 <tree>
+                    <field name = 'no'/>
                     <field name = 'name'/>
-                    <field name = 'member_name'/>
                     <field name = 'mobile'/>
                     <field name = 'email'/>
                 </tree>
@@ -181,8 +209,8 @@
                     <sheet>
                         <group>
                             <group string = 'General'>
+                               <field name = 'no'/>
                                <field name = 'name'/>
-                               <field name = 'group_name'/>
                             </group>
                             <group string = 'Group Information'>
                                 <field name = 'reg_no'/>
@@ -198,6 +226,8 @@
                                 <field name = 'signatories'/>
                             </group>
                         </group>
+                        <label for = 'group_members'/>
+                        <field name = 'group_members' readonly = '1'/>
                     </sheet>
                 </form>
             </field>
@@ -208,8 +238,8 @@
             <field name = 'model'>microfinance.group</field>
             <field name = 'arch' type = 'xml'>
                 <tree>
+                    <field name = 'no'/>
                     <field name = 'name'/>
-                    <field name = 'group_name'/>
                     <field name = 'reg_no'/>
                     <field name = 'constituency'/>
                     <field name = 'district'/>
@@ -247,25 +277,30 @@
                             <group>
                                 <field name = 'name'/>
                                 <field name = 'application_date'/>
-                                <field name = 'member_no'/>
-                                <field name = 'member_name'/>
+                                <field name = 'table_session_id' domain="[('field_officer','=',user_id)]"/>
+                                <field name = 'group' /><!--invisible = '1'-->
+                                <field name = 'member_no' string = 'Member' domain="[('group_id','=',group)]"/>
                                 <field name = 'posted'/>
+                                <field name = 'user_id' string = 'Field Officer'/>
+                                <field name = 'loan_category'/>
                             </group>
-                            <group>
-                                <field name = 'loan_type'/>
-                                <field name = 'scale'/>
+                            <group string = 'Loan Details'>
+                                <field name = 'interest_rate'/>
                                 <field name = 'installments'/>
-                                <!--<field name = 'matrix'/>-->
-                                <field name = 'posting'/>
-                                <field name = 'loan_batch'/>
-                                <!--<field name = 'requested_amount'/>-->
-                            </group>
-                            <group string = 'Amounts'>
                                 <field name = 'approved_amount'/>
                                 <field name = 'interest' string = 'Interest Charged'/>
                                 <field name = 'balance' string = 'Principal Balance'/>
                                 <field name = 'interest_balance'/>
                             </group>
+                            <group attrs="{'invisible': [('loan_category', '!=', 'table')]}">
+                                <field name = 'loan_type'/>
+                            </group>
+                            <group attrs="{'invisible': [('loan_category', '!=', 'agri')]}">
+                                <field name = 'loan_product'/>
+                                <field name = 'scale'/>
+                            </group>
+
+
                         </group>
                         <notebook>
                             <page string = 'Loan Purpose'>
@@ -485,9 +520,60 @@
             </field>
         </record>
 
+
+
         <record model = 'ir.ui.view' id = 'microfinance_loan_products_tree'>
             <field name = 'name'>microfinance.loan.product</field>
             <field name = 'model'>microfinance.loan.products</field>
+            <field name = 'arch' type = 'xml'>
+                <tree>
+                    <field name = 'name'/>
+                    <field name = 'description'/>
+                </tree>
+            </field>
+        </record>
+
+        <record model = 'ir.ui.view' id = 'microfinance_loan_types_form'>
+            <field name = 'name'>microfinance.loan.types</field>
+            <field name = 'model'>microfinance.loan.types</field>
+            <field name = 'arch' type = 'xml'>
+                <form>
+                    <header></header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name = 'name'/>
+                                <field name = 'description'/>
+
+                            </group>
+                            <group>
+                                <field name = 'interest_rate'/>
+                                <field name = 'installments'/>
+                                <field name = 'repayment_method'/>
+
+                            </group>
+                        </group>
+                        <!--
+                        <notebook>
+                            <page string = 'Inputs'>
+                                <field name = 'loan_product_input_ids'>
+                                    <tree editable = 'top'>
+                                        <field name = 'name'/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    -->
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+
+        <record model = 'ir.ui.view' id = 'microfinance_loan_types_tree'>
+            <field name = 'name'>microfinance.loan.types</field>
+            <field name = 'model'>microfinance.loan.types</field>
             <field name = 'arch' type = 'xml'>
                 <tree>
                     <field name = 'name'/>
@@ -599,6 +685,16 @@
                         </group>
                     </group>
                     <notebook>
+                        <page string = 'Membership Checklist'>
+                            <field name = 'membership_checklist'>
+                                <tree editable = 'bottom'>
+                                    <field name = 'name'/>
+                                    <field name = 'transaction_type'/>
+                                    <field name = 'account'/>
+                                    <field name = 'amount'/>
+                                </tree>
+                            </field>
+                        </page>
                         <page string = 'Numbering'>
                             <group>
                                 <group>
@@ -608,10 +704,13 @@
                                     <field name = 'group_nos'/>
                                     <field name = 'loan_nos'/>
                                     <field name = 'loan_batch_nos'/>
+                                    <!--
                                     <field name = 'loan_advice_nos'/>
                                     <field name = 'checkoff_nos'/>
+                                -->
                                     <field name = 'receipt_nos'/>
                                     <field name = 'payment_nos'/>
+                                    <field name = 'table_session_nos'/>
                                 </group>
                                 <group>
 
@@ -629,6 +728,20 @@
                                 <group>
                                     <field name = 'loan_interest_receivable_acc'/>
                                     <field name = 'loan_processing_fee_acc'/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string = 'Accounting'>
+                            <group>
+                                <group>
+                                    <field name = 'registration_fee_acc'/>
+                                    <field name = 'deposits_account'/>
+                                    <field name = 'shares_account'/>
+                                </group>
+                                <group>
+                                    <field name = 'savings_account'/>
+                                    <field name = 'penalties_account'/>
+                                    <field name = 'insurance_account'/>
                                 </group>
                             </group>
                         </page>
@@ -670,7 +783,7 @@
                             <page string = "Employees">
                                 <field name = 'employees'>
                                     <tree>
-                                        <field name = 'member_name'/>
+                                        <field name = 'name'/>
                                         <field name = 'id_no'/>
                                         <field name = 'mobile'/>
                                         <field name = 'email'/>
@@ -716,11 +829,13 @@
                     <field name = 'entryno'/>
                     <field name = 'member_no'/>
                     <field name = 'member_name'/>
+                    <field name = 'group_no'/>
+                    <!--<field name = 'group_name'/>-->
                     <field name = 'transaction_type'/>
                     <field name = 'transaction_no'/>
                     <field name = 'amount'/>
-                    <field name = 'dr'/>
-                    <field name = 'cr'/>
+                    <!--<field name = 'dr'/>
+                    <field name = 'cr'/>-->
                 </tree>
             </field>
         </record>
@@ -733,12 +848,14 @@
          <form>
             <sheet>
                <header>
-                  <button name="action_post" type = "object" string = "Post" confirm="Post receipt?" />
+                  <button name="action_post" type = "object" string = "Post" confirm="Post receipt?" class = 'oe_highlight'/>
                </header>
                <group>
                   <group>
                      <field name = 'name'/>
                      <field name = 'date'/>
+                     <field name = 'table_session_id' domain="[('field_officer','=',cashier)]"/>
+                     <field name = 'group'/>
                      <field name = 'bank_code'/>
                      <field name = 'bank_name'/>
                      <field name = 'posted'/>
@@ -748,27 +865,24 @@
                      <field name = 'amount_words'/>
                      <field name = 'received_from'/>
                      <field name = 'cashier'/>
-
                   </group>
                </group>
 
                <notebook>
                   <page string = 'Receipt Lines'>
-                     <field name = 'line_ids'>
+                     <field name = 'line_ids' context="{'group':group}">
                      <tree editable = 'bottom'>
                            <field name = 'transaction_type'/>
-                           <field name = 'member_no'/>
+                           <field name = 'group'/>
+                           <field name = 'member_no' domain="[('group_id','=',group)]"/>
                            <field name = 'loan_no' domain="[('member_no','=',member_no),('posted','=',1)]"
                               attrs="{'readonly': [['transaction_type', 'not in', ['repayment']]]}"/>
-                           <field name = 'description'/>
+                           <!--<field name = 'description'/>-->
                            <field name = 'amount'/>
-
-
                      </tree>
                      </field>
                   </page>
                </notebook>
-
             </sheet>
          </form>
       </field>
@@ -788,17 +902,268 @@
       </field>
    </record>
 
+   <record model = 'ir.ui.view' id = 'microfinance_table_form'>
+       <field name = 'name'>Table Transactions</field>
+       <field name = 'model'>microfinance.table</field>
+       <field name = 'arch' type = 'xml'>
+           <form>
+               <header>
+                <button name = 'confirm' type = 'object' string = 'Confirm' confirm = 'Confirm Transactions?' class = 'oe_highlight'/>
+                    <button name = 'close_session' type = 'object' string = 'Close Session' confirm = 'Close Session?' class = 'oe_highlight'/>
+                    <button name = 'reset' type = 'object' string = 'Reset to Draft' confirm = 'Reset this Session?' class = 'oe_highlight'/>
+                   <field name = 'state' widget = 'statusbar'/>
+               </header>
+               <sheet>
+                    <!--
+                    <div class="oe_right oe_button_box" name="buttons">
+                        <button name = '%(microfinance.microfinance_charges_action)d' class = "oe_inline oe_stat_button" type = 'action' icon="fa-check-square-o" context="{'search_default_table_session_id':active_id,'default_table_session_id':active_id}">
+                            <field name = 'total_charges' string = "Charges" widget = 'statinfo'/>
+                        </button>
+                    </div>
+                -->
+                   <group>
+                       <group>
+                           <field name = 'name'/>
+                           <field name = 'date'/>
+                           <field name = 'group'/>
+                           <field name = 'total_revolving_fund'/>
+                           <field name = 'field_officer'/>
+                       </group>
+                       <group>
+                            <field name = 'group_opening_balance'/>
+                            <field name = 'transactions'/>
+                            <field name = 'group_closing_balance'/>
+                            <field name = 'posted'/>
+                       </group>
+                   </group>
+                   <notebook>
+                       <page string = 'Table Transactions'>
+                           <field name = 'line_ids'>
+                               <tree>
+                                   <field name = 'transaction_type'/>
+                                   <field name = 'group'/>
+                                   <field name = 'member'/>
+                                   <field name = 'amount'/>
+                                   <field name = 'direction'/>
+                               </tree>
+                           </field>
+                       </page>
+                       <page string = 'Attendance'>
+                           <field name = 'attendee_ids'>
+                               <tree editable = 'bottom'>
+                                   <field name = 'name' readonly = '1'/>
+                                   <field name = 'present'/>
+                                   <field name = 'absent'/>
+                                   <field name = 'reason'/>
+                               </tree>
+                           </field>
+                       </page>
+                       <page string = 'Fines and Charges'>
+                           <field name = 'charges'>
+                               <tree>
+                                   <field name = 'member'/>
+                                   <field name = 'charge_type'/>
+                                   <field name = 'account'/>
+                                   <field name = 'amount' sum = 'amount'/>
+                               </tree>
+                           </field>
+                       </page>
+                   </notebook>
+               </sheet>
+           </form>
+       </field>
+   </record>
 
+   <record model = 'ir.ui.view' id = 'microfinance_table_tree'>
+       <field name = 'name'>Table Transactions</field>
+       <field name = 'model'>microfinance.table</field>
+       <field name = 'arch' type = 'xml'>
+           <tree>
+               <field name = 'name'/>
+               <field name = 'date'/>
+               <field name = 'group'/>
+               <field name = 'field_officer'/>
+           </tree>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_charges_form'>
+       <field name = 'name'>Microfinance Table Charges</field>
+       <field name = 'model'>microfinance.charges</field>
+       <field name = 'arch' type = 'xml'>
+           <form>
+               <header></header>
+               <sheet>
+                   <group>
+                       <group>
+                           <field name = 'name'/>
+                           <field name = 'charge_type'/>
+                           <field name = 'account'/>
+                           <field name = 'amount'/>
+                       </group>
+                       <group></group>
+                   </group>
+               </sheet>
+           </form>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_charges_tree'>
+       <field name = 'name'>Microfinance Charges</field>
+       <field name = 'model'>microfinance.charges</field>
+       <field name = 'arch' type = 'xml'>
+           <tree editable = 'bottom'>
+               <field name = 'name'/>
+               <field name = 'member'/>
+               <field name = 'charge_type'/>
+               <field name = 'account'/>
+               <field name = 'amount'/>
+           </tree>
+       </field>
+   </record>
+
+   <record model="ir.ui.view" id="microfinance_charges_search_view">
+            <field name="name">Microfinance Charges Search</field>
+            <field name="model">microfinance.charges</field>
+            <field name="arch" type="xml">
+                <search>
+                  <field name="table_session_id"/>
+                </search>
+            </field>
+        </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_charges_setup_form'>
+       <field name = 'name'>Microfinance Table Charges Setup</field>
+       <field name = 'model'>microfinance.charges.setup</field>
+       <field name = 'arch' type = 'xml'>
+           <form>
+               <header></header>
+               <sheet>
+                   <group>
+                       <group>
+                           <field name = 'name'/>
+                           <field name = 'charge_type'/>
+                           <field name = 'account'/>
+                           <field name = 'amount'/>
+                       </group>
+                       <group></group>
+                   </group>
+               </sheet>
+           </form>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_charges_setup_tree'>
+       <field name = 'name'>Microfinance Charges Setup</field>
+       <field name = 'model'>microfinance.charges.setup</field>
+       <field name = 'arch' type = 'xml'>
+           <tree>
+               <field name = 'name'/>
+               <field name = 'charge_type'/>
+               <field name = 'account'/>
+               <field name = 'amount'/>
+           </tree>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_payments_form'>
+       <field name = 'name'>Microfinance Payments</field>
+       <field name = 'model'>microfinance.payment.header</field>
+       <field name = 'arch' type = 'xml'>
+           <form>
+               <header>
+                   <field name = 'status' widget = 'statusbar'/>
+               </header>
+               <sheet>
+                   <group>
+                       <group>
+                           <field name = 'name'/>
+                           <field name = 'date'/>
+                           <field name = 'table_session_id'/>
+                           <field name = 'group'/>
+                           <field name = 'bank_code'/>
+                           <field name = 'pay_mode'/>
+                       </group>
+                       <group>
+                           <field name = 'amount'/>
+                           <field name = 'amount_words'/>
+                           <field name = 'payment_to'/>
+                           <field name = 'payment_narration'/>
+                           <field name = 'posted'/>
+                       </group>
+                   </group>
+                   <notebook>
+                       <page string = 'Payment Lines'>
+                           <field name = 'line_ids'>
+                               <tree editable = 'bottom'>
+                                   <field name = 'transaction_type'/>
+                                   <field name = 'group'/>
+                                   <field name = 'member_no'/>
+                                   <field name = 'amount'/>
+                               </tree>
+                           </field>
+                       </page>
+                   </notebook>
+               </sheet>
+           </form>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_payments_tree'>
+       <field name = 'name'>Microfinance Payments</field>
+       <field name = 'model'>microfinance.payment.header</field>
+       <field name = 'arch' type = 'xml'>
+           <tree>
+               <field name = 'name'/>
+               <field name = 'date'/>
+               <field name = 'payment_to'/>
+               <field name = 'group'/>
+               <field name = 'amount'/>
+           </tree>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_group_ledger_tree'>
+       <field name = 'name'>Microfinance Group Ledger</field>
+       <field name = 'model'>microfinance.group.ledger.entry</field>
+       <field name = 'arch' type = 'xml'>
+           <tree>
+               <field name = 'entryno'/>
+               <field name = 'table_session_id'/>
+               <field name = 'group_no'/>
+               <field name = 'transaction_type'/>
+               <field name = 'transaction_no'/>
+               <field name = 'amount'/>
+           </tree>
+       </field>
+   </record>
+
+<!--Menus and Actions Start Here-->
         <record model = 'ir.actions.act_window' id = 'microfinance_member_application_action'>
             <field name = 'name'>Member Application</field>
             <field name = 'res_model'>microfinance.member.application</field>
+            <field name = "domain">[('state','!=','complete')]</field>
+            <field name = "filter" eval = "True"/>
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>
         </record>
 
-        <menuitem name = 'Microfinance' id = 'microfinance_main_menu'/>
+        <menuitem name = 'MicroLoan' id = 'microfinance_main_menu'/>
         <menuitem name = 'Member Management' id = 'microfinance_member_management_main_menu' parent = 'microfinance_main_menu' sequence = '10'/>
         <menuitem name = 'Member Applications' id = 'microfinance_member_application' parent = 'microfinance_member_management_main_menu' action = 'microfinance_member_application_action' sequence = '10'/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_member_application_history_action'>
+            <field name = 'name'>Posted Member Application</field>
+            <field name = 'res_model'>microfinance.member.application</field>
+            <field name = "domain">[('state','=','complete')]</field>
+            <field name = "filter" eval = "True"/>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'History' id = 'microfinance_member_management_history_main_menu' parent = 'microfinance_member_management_main_menu' sequence = '90'/>
+        <menuitem name = 'Posted Member Applications' id = 'microfinance_member_application_history' parent = 'microfinance_member_management_history_main_menu' action = 'microfinance_member_application_history_action' sequence = '10'/>
+
 
         <record model = 'ir.actions.act_window' id = 'microfinance_group_application_action'>
             <field name = 'name'>Group Application</field>
@@ -807,7 +1172,7 @@
             <field name = 'view_mode'>tree,form</field>
         </record>
 
-        <menuitem name = 'Group Applications' id = 'microfinance_group_application' parent = 'microfinance_member_management_main_menu' action = 'microfinance_group_application_action' sequence = '15'/>
+        <menuitem name = 'Group Applications' id = 'microfinance_group_application' parent = 'microfinance_member_management_main_menu' action = 'microfinance_group_application_action' sequence = '5'/>
 
         <record model = 'ir.actions.act_window' id = 'microfinance_member_action'>
             <field name = 'name'>Member Form</field>
@@ -821,11 +1186,13 @@
         <record model = 'ir.actions.act_window' id = 'microfinance_group_action'>
             <field name = 'name'>Group Form</field>
             <field name = 'res_model'>microfinance.group</field>
+            <field name = "domain">[('state','=','open')]</field>
+            <field name = "filter" eval = "True"/>
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>
         </record>
 
-        <menuitem name = 'Group List' id = 'microfinance_group_list' parent = 'microfinance_member_management_main_menu' action = 'microfinance_group_action' sequence = "30"/>
+        <menuitem name = 'Group List' id = 'microfinance_group_list' parent = 'microfinance_member_management_main_menu' action = 'microfinance_group_action' sequence = "15"/>
 
         <record model = 'ir.actions.act_window' id = 'microfinance_loans_action'>
             <field name = 'name'>Microfinance Loan</field>
@@ -861,10 +1228,10 @@
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>
         </record>
-
+        <!--
         <menuitem name = 'Periodic Activities' id = 'microfinance_periodic_activities_main_menu' parent = 'microfinance_main_menu' sequence = "30"/>
         <menuitem name = 'Loan Advice' id = 'microfinance_loan_advice' parent = 'microfinance_periodic_activities_main_menu' action = 'microfinance_loan_advice_action'
-        sequence = "10"/>
+        sequence = "10"/>-->
 
         <record model = 'ir.actions.act_window' id = 'microfinance_checkoff_action'>
             <field name = 'name'>Microfinance Checkoff</field>
@@ -872,8 +1239,8 @@
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>
         </record>
-
-        <menuitem name = 'Checkoff' id = 'microfinance_checkoff' parent = 'microfinance_periodic_activities_main_menu' action = 'microfinance_checkoff_action' sequence = "20"/>
+        <!--
+        <menuitem name = 'Checkoff' id = 'microfinance_checkoff' parent = 'microfinance_periodic_activities_main_menu' action = 'microfinance_checkoff_action' sequence = "20"/>-->
 
         <record model = 'ir.actions.act_window' id = 'microfinance_loan_products_action'>
             <field name = 'name'>Microfinance Loan Products</field>
@@ -883,8 +1250,18 @@
         </record>
 
         <menuitem name = 'Configuration' id = 'microfinance_configuration_main_menu' parent = 'microfinance_main_menu' sequence = '100'/>
-        <menuitem name = 'Loan Products' id = 'microfinance_loan_products' parent = 'microfinance_configuration_main_menu' action = 'microfinance_loan_products_action'
+        <menuitem name = 'Agri-Booster Products' id = 'microfinance_loan_products' parent = 'microfinance_configuration_main_menu' action = 'microfinance_loan_products_action'
         sequence = "10"/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_loan_types_action'>
+            <field name = 'name'>Microfinance Loan Types</field>
+            <field name = 'res_model'>microfinance.loan.types</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'Table Banking Loan Products' id = 'microfinance_loan_types' parent = 'microfinance_configuration_main_menu' action = 'microfinance_loan_types_action'
+        sequence = "5"/>
 
         <record model = 'ir.actions.act_window' id = 'microfinance_general_setup_action'>
             <field name = 'name'>General Setup</field>
@@ -932,7 +1309,7 @@
            <field name = 'view_mode'>tree,form</field>
         </record>
 
-        <menuitem name = 'Transactions' id = 'microfinance_transactions_main_menu' parent = 'microfinance_main_menu' sequence = '30'/>
+        <menuitem name = 'Receipts and Payments' id = 'microfinance_transactions_main_menu' parent = 'microfinance_main_menu' sequence = '30'/>
         <menuitem name = 'Receipts' id = 'microfinance_receipts' parent = 'microfinance_transactions_main_menu' action = 'microfinance_receipt_header_action' sequence = '35'/>
 
         <record model = 'ir.actions.act_window' id = 'microfinance_member_reports'>
@@ -971,6 +1348,50 @@
         </record>
 
         <menuitem name = 'Profitability Analysis' id = 'microfinance_profitability_analysis' parent = 'microfinance_analysis_main_menu' action = 'microfinance_profitability_reports' sequence = '40'/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_table_action'>
+            <field name = 'name'>Table Transactions</field>
+            <field name = 'res_model'>microfinance.table</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'Table Banking' id = 'microfinance_table_transactions_main_menu' parent = 'microfinance_main_menu' sequence = '40'/>
+        <menuitem name = 'Group Meetings' id = 'microfinance_table_sessions' parent = 'microfinance_table_transactions_main_menu' action = 'microfinance_table_action' sequence = '10'/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_charges_setup_action'>
+            <field name = 'name'>Microfinance Charges Seutp</field>
+            <field name = 'res_model'>microfinance.charges.setup</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'Table Charges' id = 'microfinance_table_charges_setup' parent = 'microfinance_table_transactions_main_menu' action = 'microfinance_charges_setup_action' sequence = '20'/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_charges_action'>
+            <field name = 'name'>Microfinance Charges</field>
+            <field name = 'res_model'>microfinance.charges</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree</field>
+        </record>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_payments_action'>
+            <field name = 'name'>Microfinance Payments</field>
+            <field name = 'res_model'>microfinance.payment.header</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'Payments List' id = 'microfinance_payments' parent = 'microfinance_transactions_main_menu' action = 'microfinance_payments_action' sequence = '50'/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_group_ledger_action'>
+            <field name = 'name'>Microfinance Group Ledger</field>
+            <field name = 'res_model'>microfinance.group.ledger.entry</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'Group Ledger' id = 'microfinance_group_ledger' parent = 'microfinance_table_transactions_main_menu' action = 'microfinance_group_ledger_action' sequence = '30'/>
 
     </data>
 </openerp>
