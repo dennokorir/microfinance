@@ -87,7 +87,7 @@ class microfinance_member_application(models.Model):
     no = fields.Char()
     name = fields.Char()
     group_id = fields.Many2one('microfinance.group', string = "Group")
-    application_date = fields.Date()
+    application_date = fields.Date(default=fields.date.today())
     employer_code = fields.Many2one('microfinance.employers')
     id_no = fields.Char()
     pin = fields.Char()
@@ -100,8 +100,14 @@ class microfinance_member_application(models.Model):
     user_id = fields.Many2one('res.users', string = 'Field Officer')
     membership_checklist = fields.One2many('microfinance.membership.checklist','application_id')
     membership_fees_paid = fields.Boolean()
+    membership_fees = fields.Float(compute = 'compute_total_on_checklist')
     state = fields.Selection([('draft',"Draft"),('ready',"Ready"),('complete',"Complete")], default = 'draft')
     member = fields.Many2one('microfinance.member')
+    user_id = fields.Many2one('res.users', default = lambda self: self.env.user, string = 'Field Officer')
+
+    @api.onchange('table_session_id')
+    def get_group(self):
+        self.group_id = self.table_session_id.group.id
 
 
     @api.one
@@ -128,6 +134,11 @@ class microfinance_member_application(models.Model):
         self.member = member.id
 
     @api.one
+    @api.depends('membership_checklist')
+    def compute_total_on_checklist(self):
+        self.membership_fees = sum(line.amount for line in self.membership_checklist)
+
+    @api.one
     def validate_membership(self):
         #create session transactions and accounting entries.
         #collect required accounts again in case of an error or additional setup
@@ -142,6 +153,11 @@ class microfinance_member_application(models.Model):
                 new_checklist_item = {'application_id':self.id,'name':line.name,'transaction_type':line.transaction_type,'account':line.account.id,'amount':line.amount}
                 self.env['microfinance.membership.checklist'].create(new_checklist_item)
 
+        self.state = 'ready'
+        self.create_member()#create account at this point but leave it as being inactive
+
+    @api.one
+    def action_post(self, receiving_bank):
         #start processing available lines
         #ensure all amounts are as per setup and all accounts are avaible as well as transaction types
         for line in self.membership_checklist:
@@ -149,14 +165,13 @@ class microfinance_member_application(models.Model):
                 raise ValidationError('One or more items is not correctly setup in the Membership Checklist!')
             if line.amount != line.paid:
                 raise ValidationError('Checklist item amount and paid must be equal!')
-        self.state = 'ready'
-        self.create_member()#create account at this point but leave it as being inactive
 
-    @api.one
-    def action_post(self, paying_bank):
-        if not self.posted:
+        if not self.membership_fees_paid:
             #date
-            today = datetime.now().strftime("%Y/%m/%d")
+            if self.application_date:
+                today = self.application_date
+            else:
+                today = datetime.now().strftime("%Y/%m/%d")
             setup = self.env['microfinance.setup'].search([('id','=',1)])
             #create journal header
             journal = self.env['account.journal'].search([('id','=',setup.loans_journal.id)]) #get journal id
@@ -184,23 +199,24 @@ class microfinance_member_application(models.Model):
                 entryno = 0
 
             #dr
-            bank = self.env['res.partner.bank'].search([('bank','=',paying_bank)])
+            bank = self.env['res.partner.bank'].search([('bank','=',receiving_bank)])
             bank_acc = bank.journal_id.default_credit_account_id.id
             for line in self.membership_checklist:
                 #cr
                 cr = line.account.id
-                journal_lines.create({'journal_id':journal.id,'period_id':period_id,'date':today,'name':self.name +'::'+self.member_no.name,'account_id':bank_acc,'move_id':move_id,'debit':line.amount})
-                journal_lines.create({'journal_id':journal.id,'period_id':period_id,'date':today,'name':self.name +'::'+self.member_no.name,'account_id':cr,'move_id':move_id,'credit':line.amount})
+                journal_lines.create({'journal_id':journal.id,'period_id':period_id,'date':today,'name':self.name +'::'+self.member.name,'account_id':bank_acc,'move_id':move_id,'debit':line.amount})
+                journal_lines.create({'journal_id':journal.id,'period_id':period_id,'date':today,'name':self.name +'::'+self.member.name,'account_id':cr,'move_id':move_id,'credit':line.amount})
                 #post member ledger entry
                 entryno += 1
-                member_ledger.create({'member_no':self.member_no.id,'member_name':self.member_name,'date':today,'transaction_no':self.name,'transaction_name':line.name,'amount':line.amount,
-                'transaction_type':line.transaction_type,'entryno':entryno})
+                member_ledger.create({'member_no':self.member.id,'member_name':self.member.name,'date':today,'transaction_no':self.name,'transaction_name':line.name,'amount':line.amount,
+                'transaction_type':line.transaction_type,'entryno':entryno,'group_no':self.group_id.id, 'group_name':self.group_id.name,'date':today})
                 #post table session data
                 #create_transaction(self,header_id, transaction_type, group, member, amount, direction)
-                self.table_session_id.create_transaction(self.table_session_id.id,line.transaction_type,self.member_no.group_id.id, self.member_no.id, self.approved_amount,'outward')
+                self.table_session_id.create_transaction(self.table_session_id.id,line.transaction_type,self.member.group_id.id, self.member.id, line.amount,'inward')
 
             self.state = 'complete'
             self.member.state = 'open'#activate account and make it visible in member list
+            membership_fees_paid = True
 
 
 class microfinance_member_registration_checklist_setup(models.Model):
@@ -410,7 +426,10 @@ class microfinance_loan(models.Model):
     def action_post(self, paying_bank):
         if not self.posted:
             #date
-            today = datetime.now().strftime("%Y/%m/%d")
+            if self.application_date:
+                today = self.application_date
+            else:
+                today = datetime.now().strftime("%Y/%m/%d")
             setup = self.env['microfinance.setup'].search([('id','=',1)])
             #create journal header
             journal = self.env['account.journal'].search([('id','=',setup.loans_journal.id)]) #get journal id
@@ -471,12 +490,12 @@ class microfinance_loan(models.Model):
 
             entryno += 1
             #loan
-            member_ledger.create({'member_no':self.member_no.id,'member_name':self.member_name,'date':today,'transaction_no':self.name,'transaction_name':'Loan Application','amount':self.approved_amount,
-            'transaction_type':'loan','entryno':entryno})
+            member_ledger.create({'member_no':self.member_no.id,'member_name':self.member_no.name,'date':today,'transaction_no':self.name,'transaction_name':'Loan Application','amount':self.approved_amount,
+            'transaction_type':'loan','entryno':entryno,'group_no':self.group.id, 'group_name':self.group.name,'date':today})
             #interest
             entryno += 1
             member_ledger.create({'member_no':self.member_no.id,'member_name':self.member_no.name,'date':today,'transaction_no':self.name,'transaction_name':'Loan Interest Due','amount':interest,
-            'transaction_type':'interest','entryno':entryno,'group_no':self.group.id, 'group_name':self.group.name})
+            'transaction_type':'interest','entryno':entryno,'group_no':self.group.id, 'group_name':self.group.name,'date':today})
 
             #post table session data
             #create_transaction(self,header_id, transaction_type, group, member, amount, direction)
@@ -749,11 +768,12 @@ class microfinance_member_ledger(models.Model):
     _name = 'microfinance.member.ledger.entry'
 
     entryno = fields.Integer()
+    date = fields.Date()
     member_no = fields.Many2one('microfinance.member')
     member_name = fields.Char()
     group_no = fields.Many2one('microfinance.group')
     group_name = fields.Char()
-    transaction_type = fields.Selection([('registration',"Registration Fee"),('penalties',"Penalties"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan',"loan"),('interest',"Interest")])
+    transaction_type = fields.Selection([('registration',"Registration Fee"),('membership',"Membership Fees"),('penalties',"Penalties"),('fines',"Fines"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan',"loan"),('interest',"Interest")])
     transaction_no = fields.Char()
     amount = fields.Float()
     dr = fields.Float()
@@ -989,7 +1009,7 @@ class receipt_line(models.Model):
     _name = 'microfinance.receipt.line'
 
     no = fields.Many2one('microfinance.receipt.header')
-    transaction_type = fields.Selection([('registration',"Registration Fee"),('penalties',"Penalties"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('repayment',"Loan Repayment")])
+    transaction_type = fields.Selection([('registration',"Registration Fee"),('membership',"Membership Fees"),('penalties',"Penalties"),('fines',"Fines"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('repayment',"Loan Repayment")])
     group = fields.Many2one('microfinance.group')
     member_no = fields.Many2one('microfinance.member')
     loan_no = fields.Many2one('microfinance.loan', domain = [('posted','=',True)])
@@ -1121,6 +1141,7 @@ class microfinance_table(models.Model):
 
     name = fields.Char()
     date = fields.Date()
+    bank = fields.Many2one('account.journal',domain = [('type','=','bank')])
     group = fields.Many2one('microfinance.group')
     field_officer = fields.Many2one('res.users', default=lambda self: self.env.user)
     line_ids = fields.One2many('microfinance.table.lines','header_id', readonly = True)
@@ -1133,6 +1154,11 @@ class microfinance_table(models.Model):
     total_revolving_fund = fields.Float(string = 'Total Revolving Fund')#, compute = 'calculate_revolving_fund'
     posted = fields.Boolean()
     attendee_ids = fields.One2many('microfinance.table.attendance','header_id')
+    entries = fields.Integer(compute = 'sum_entries')
+
+    @api.one
+    def sum_entries(self):
+        self.entries = len(self.line_ids)
 
 
     @api.one
@@ -1235,11 +1261,17 @@ class microfinance_table(models.Model):
             lines += [val]
         self.update({'attendee_ids':lines})
 
+    @api.one
+    def get_attendance_manually(self):
+        self.attendee_ids.unlink()
+        for line in self.group.group_members:
+            self.env['microfinance.table.attendance'].create({'header_id':self.id, 'name':line.id})
+
 class microfinance_table_line(models.Model):
     _name = 'microfinance.table.lines'
 
     header_id = fields.Many2one('microfinance.table')
-    transaction_type = fields.Selection([('registration',"Registration Fee"),('penalties',"Penalties"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan',"Loan"),('loan_repayment',"Loan Repayment"),('membership',"Membership Fees")])
+    transaction_type = fields.Selection([('registration',"Registration Fee"),('membership',"Membership Fees"),('penalties',"Penalties"),('fines',"Fines"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan',"Loan"),('loan_repayment',"Loan Repayment"),('membership',"Membership Fees")])
     group = fields.Many2one('microfinance.group')
     member = fields.Many2one('microfinance.member')
     amount = fields.Float()
@@ -1268,9 +1300,10 @@ class microfinance_charges(models.Model):
     _name = 'microfinance.charges'
 
     name = fields.Many2one('microfinance.charges.setup')
+    description = fields.Char()
     member = fields.Many2one('microfinance.member')
     group = fields.Many2one('microfinance.group')
-    charge_type = fields.Selection([('defaulting',"Default on Loans"),('attendance',"Non Attendance")])
+    charge_type = fields.Selection([('fines','Fines'),('attendance',"Non Attendance")])
     account = fields.Many2one('account.account')
     amount = fields.Float()
     table_session_id = fields.Many2one('microfinance.table')
@@ -1284,7 +1317,8 @@ class microfinance_charges_setup(models.Model):
     _name = 'microfinance.charges.setup'
 
     name = fields.Char()
-    charge_type = fields.Selection([('defaulting',"Default on Loans"),('attendance',"Non Attendance")])
+    description = fields.Char()
+    charge_type = fields.Selection([('fines',"Fines"),('attendance',"Non Attendance")])
     account = fields.Many2one('account.account')
     amount = fields.Float(string = 'Default Amount')
 

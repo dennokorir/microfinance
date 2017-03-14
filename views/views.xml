@@ -7,7 +7,8 @@
                 <form>
                     <header>
                         <button name = 'validate_membership' string = 'Validate Membership' type = 'object' confirm = 'Validate Membership?' class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['draft'])]}"/>
-                        <button name = 'create_member' type = 'object' string = "Create Member" class = 'oe_highlight' confirm = 'Create Member?' attrs="{'invisible': [('state', 'not in', ['ready'])]}"/>
+                        <!--<button name = 'create_member' type = 'object' string = "Create Member" class = 'oe_highlight' confirm = 'Create Member?' attrs="{'invisible': [('state', 'not in', ['ready'])]}"/>-->
+                        <button name = '%(launch_member_application_posting_wizard)d' type = 'action' string = "Create Member" class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['ready'])]}" context="{'default_member_application':id, 'default_amount':membership_fees, 'default_application_no':no}" />
                         <field name = 'state' widget = 'statusbar'/>
                     </header>
                     <sheet>
@@ -16,10 +17,11 @@
                                 <field name = 'no'/>
                                 <field name = 'name'/>
                                 <field name = 'application_date'/>
+                                <field name = 'table_session_id' string = 'Group Meeting No.' domain="[('field_officer','=',user_id)]"/>
                                 <field name = 'group_id'/>
-                                <field name = 'created'/>
-                                <field name = 'table_session_id' string = 'Group Meeting No.'/>
                                 <field name = 'user_id'/>
+                                <field name = 'created'/>
+                                <field name = 'membership_fees' invisible = '1'/>
                                 <!--<field name = 'employer_code'/>-->
                             </group>
                             <group>
@@ -39,7 +41,7 @@
                                         <field name = 'account'/>
                                         <field name = 'amount' sum = 'amount'/>
                                         <field name = 'paid' sum = 'paid'/>
-                                        <field name = 'balance' sum = 'balance'/>
+                                        <!--<field name = 'balance' sum = 'balance'/>-->
                                     </tree>
                                 </field>
                             </page>
@@ -193,7 +195,7 @@
            <field name="model">microfinance.member</field>
            <field name="arch" type="xml">
                 <graph string="Member Reports">
-                    <field name="name" type="row"/>
+                    <!--<field name="name" type="row"/>-->
                     <field name="gender" type='row'/>
                     <!--<field name="loans" type="measure"/>-->
                 </graph>
@@ -827,6 +829,7 @@
             <field name = 'arch' type = 'xml'>
                 <tree>
                     <field name = 'entryno'/>
+                    <field name = 'date'/>
                     <field name = 'member_no'/>
                     <field name = 'member_name'/>
                     <field name = 'group_no'/>
@@ -837,6 +840,17 @@
                     <!--<field name = 'dr'/>
                     <field name = 'cr'/>-->
                 </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="microfinance_member_ledger_entry_graph">
+           <field name="name">Members Ledger Analysis</field>
+           <field name="model">microfinance.member.ledger.entry</field>
+           <field name="arch" type="xml">
+                <graph string="Member Ledger Reports">
+                    <field name="transaction_type" type="row"/>
+                    <field name="amount" type="measure"/>
+                </graph>
             </field>
         </record>
 
@@ -909,22 +923,22 @@
            <form>
                <header>
                 <button name = 'confirm' type = 'object' string = 'Confirm' confirm = 'Confirm Transactions?' class = 'oe_highlight'/>
+                    <button name = 'get_attendance_manually' type = 'object' string = 'Get Attendance' confirm = 'Get Attendance List?' class = 'oe_highlight'/>
                     <button name = 'close_session' type = 'object' string = 'Close Session' confirm = 'Close Session?' class = 'oe_highlight'/>
                     <button name = 'reset' type = 'object' string = 'Reset to Draft' confirm = 'Reset this Session?' class = 'oe_highlight'/>
                    <field name = 'state' widget = 'statusbar'/>
                </header>
                <sheet>
-                    <!--
                     <div class="oe_right oe_button_box" name="buttons">
-                        <button name = '%(microfinance.microfinance_charges_action)d' class = "oe_inline oe_stat_button" type = 'action' icon="fa-check-square-o" context="{'search_default_table_session_id':active_id,'default_table_session_id':active_id}">
-                            <field name = 'total_charges' string = "Charges" widget = 'statinfo'/>
+                        <button name = '%(microfinance_table_lines_action)d' class = "oe_inline oe_stat_button" type = 'action' icon="fa-bar-chart-o" context="{'search_default_header_id':active_id}">
+                            <field name = 'entries' string = "Analytics" widget = 'statinfo'/>-->
                         </button>
                     </div>
-                -->
                    <group>
                        <group>
                            <field name = 'name'/>
                            <field name = 'date'/>
+                           <field name = 'bank'/>
                            <field name = 'group'/>
                            <field name = 'total_revolving_fund'/>
                            <field name = 'field_officer'/>
@@ -952,6 +966,9 @@
                            <field name = 'attendee_ids'>
                                <tree editable = 'bottom'>
                                    <field name = 'name' readonly = '1'/>
+                                   <field name = 'header_id' invisible = '1'/>
+                                   <button name = '%(launch_table_fines_wizard)d' type = 'action'
+                                    context="{'default_session':header_id,'default_member':name}" icon="gtk-execute"/>
                                    <field name = 'present'/>
                                    <field name = 'absent'/>
                                    <field name = 'reason'/>
@@ -987,6 +1004,41 @@
        </field>
    </record>
 
+   <record model = 'ir.ui.view' id = 'microfinance_table_lines_tree'>
+       <field name = 'name'>Table Transaction Detail</field>
+       <field name = 'model'>microfinance.table.lines</field>
+       <field name = 'arch' type = 'xml'>
+           <tree>
+               <field name = 'transaction_type'/>
+               <field name = 'group'/>
+               <field name = 'member'/>
+               <field name = 'amount'/>
+               <field name = 'direction'/>
+           </tree>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_table_lines_search_view'>
+       <field name = 'name'>Microfinance Table Lines Search</field>
+       <field name = 'model'>microfinance.table.lines</field>
+       <field name = 'arch' type = 'xml'>
+           <search>
+               <field name = 'header_id'/>
+           </search>
+       </field>
+   </record>
+
+   <record model = 'ir.ui.view' id = 'microfinance_table_lines_graph_view'>
+       <field name = 'name'>Microfinance Graph</field>
+       <field name = 'model'>microfinance.table.lines</field>
+       <field name = 'arch' type = 'xml'>
+           <graph string = 'Group Meeting Analysis'>
+               <field name = 'transaction_type' type = 'row'/>
+               <field name = 'amount' type = 'measure'/>
+           </graph>
+       </field>
+   </record>
+
    <record model = 'ir.ui.view' id = 'microfinance_charges_form'>
        <field name = 'name'>Microfinance Table Charges</field>
        <field name = 'model'>microfinance.charges</field>
@@ -997,6 +1049,7 @@
                    <group>
                        <group>
                            <field name = 'name'/>
+                           <field name = 'description'/>
                            <field name = 'charge_type'/>
                            <field name = 'account'/>
                            <field name = 'amount'/>
@@ -1042,6 +1095,7 @@
                    <group>
                        <group>
                            <field name = 'name'/>
+                           <field name = 'description'/>
                            <field name = 'charge_type'/>
                            <field name = 'account'/>
                            <field name = 'amount'/>
@@ -1197,6 +1251,8 @@
         <record model = 'ir.actions.act_window' id = 'microfinance_loans_action'>
             <field name = 'name'>Microfinance Loan</field>
             <field name = 'res_model'>microfinance.loan</field>
+            <field name = "domain">[('posted','=',0)]</field>
+            <field name = "filter" eval = "True"/>
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>
         </record>
@@ -1204,6 +1260,19 @@
         <menuitem name = 'Loans' id = 'microfinance_loans_main_menu' parent = 'microfinance_main_menu' sequence = "20"/>
         <menuitem name = 'Loans List' id = 'microfinance_loans_list' parent = 'microfinance_loans_main_menu' action = 'microfinance_loans_action' sequence = "10"/>
 
+        <record model = 'ir.actions.act_window' id = 'microfinance_loans_history_action'>
+            <field name = 'name'>Microfinance Loan</field>
+            <field name = 'res_model'>microfinance.loan</field>
+            <field name = "domain">[('posted','=',1)]</field>
+            <field name = "filter" eval = "True"/>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'History' id = 'microfinance_loans_history_main_menu' parent = 'microfinance_loans_main_menu' sequence = "90"/>
+        <menuitem name = 'Posted Loans' id = 'microfinance_loans_history_list' parent = 'microfinance_loans_history_main_menu' action = 'microfinance_loans_history_action' sequence = "10"/>
+
+        <!--
         <record model = 'ir.actions.act_window' id = 'microfinance_loan_batch_action'>
             <field name = 'name'>Microfinance Loan Batch</field>
             <field name = 'res_model'>microfinance.loan.batch</field>
@@ -1212,12 +1281,12 @@
         </record>
 
         <menuitem name = 'Loan Batch' id = 'microfinance_loan_batch' parent = 'microfinance_loans_main_menu' action = 'microfinance_loan_batch_action' sequence = "20"/>
-
+        -->
         <record model = 'ir.actions.act_window' id = "microfinance_member_ledger_entry_action">
             <field name = 'name'>Member Ledger Entry</field>
             <field name = 'res_model'>microfinance.member.ledger.entry</field>
             <field name = 'view_type'>form</field>
-            <field name = 'view_mode'>tree,form</field>
+            <field name = 'view_mode'>tree,form,graph</field>
         </record>
 
         <menuitem name = 'Member Ledger Entry' id = 'microfinance_member_ledger_entry' parent = "microfinance_loans_main_menu" action = 'microfinance_member_ledger_entry_action' sequence = "50"/>
@@ -1319,7 +1388,7 @@
             <field name = 'view_mode'>graph</field>
         </record>
 
-        <menuitem name = 'Analysis and Reporting' id = 'microfinance_analysis_main_menu' parent = 'microfinance_main_menu' sequence = '5'/>
+        <menuitem name = 'Analysis and Reporting' id = 'microfinance_analysis_main_menu' parent = 'microfinance_main_menu' sequence = '90'/>
         <menuitem name = 'Member Analysis' id = 'microfinance_member_analysis' parent = 'microfinance_analysis_main_menu' action = 'microfinance_member_reports' sequence = '10'/>
 
         <record model = 'ir.actions.act_window' id = 'microfinance_group_reports'>
@@ -1356,8 +1425,18 @@
             <field name = 'view_mode'>tree,form</field>
         </record>
 
-        <menuitem name = 'Table Banking' id = 'microfinance_table_transactions_main_menu' parent = 'microfinance_main_menu' sequence = '40'/>
+        <menuitem name = 'Table Banking' id = 'microfinance_table_transactions_main_menu' parent = 'microfinance_main_menu' sequence = '5'/>
         <menuitem name = 'Group Meetings' id = 'microfinance_table_sessions' parent = 'microfinance_table_transactions_main_menu' action = 'microfinance_table_action' sequence = '10'/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_table_history_action'>
+            <field name = 'name'>Posted Table Transactions</field>
+            <field name = 'res_model'>microfinance.table</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'History' id = 'microfinance_table_transactions_history_main_menu' parent = 'microfinance_table_transactions_main_menu' sequence = '90'/>
+        <menuitem name = 'Group Meetings' id = 'microfinance_table_sessions_history' parent = 'microfinance_table_transactions_history_main_menu' action = 'microfinance_table_history_action' sequence = '10'/>
 
         <record model = 'ir.actions.act_window' id = 'microfinance_charges_setup_action'>
             <field name = 'name'>Microfinance Charges Seutp</field>
@@ -1392,6 +1471,15 @@
         </record>
 
         <menuitem name = 'Group Ledger' id = 'microfinance_group_ledger' parent = 'microfinance_table_transactions_main_menu' action = 'microfinance_group_ledger_action' sequence = '30'/>
+
+        <record model = 'ir.actions.act_window' id = 'microfinance_table_lines_action'>
+            <field name = 'name'>Microfinance Table Analysis</field>
+            <field name = 'res_model'>microfinance.table.lines</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>graph,tree</field>
+        </record>
+
+
 
     </data>
 </openerp>

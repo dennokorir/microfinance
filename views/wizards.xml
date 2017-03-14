@@ -30,5 +30,67 @@
             view_mode = "form"
             target = "new"
             key2 = "client_action_multi" />
+
+
+        <record model = 'ir.ui.view' id = 'microfinance_member_application_wizard'>
+            <field name = 'name'>Member Application</field>
+            <field name = 'model'>microfinance.member.application.wizard</field>
+            <field name = 'arch' type = 'xml'>
+                <form>
+                    <group>
+                        <group>
+                            <field name = 'application_no' readonly = '1'/>
+                            <field name = 'member_application' readonly = '1'/>
+                            <field name = 'receiving_bank'/>
+                            <field name = 'amount' readonly = '1'/>
+                        </group>
+                        <group></group>
+                    </group>
+                    <footer>
+                        <button name = 'action_post' type = 'object' string = 'Post' class = 'oe_highlight'/> or
+                        <button special = "cancel" string = "Cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window id = "launch_member_application_posting_wizard"
+            name = "Member Application Payments"
+            src_model = "microfinance.member.application"
+            res_model = "microfinance.member.application.wizard"
+            view_mode = "form"
+            target = "new"
+            key2 = "client_action_multi" />
+
+        <record model = 'ir.ui.view' id = 'microfinance_table_fines_wizard'>
+            <field name = 'name'>Table Fines</field>
+            <field name = 'model'>microfinance.table.fines</field>
+            <field name = 'arch' type = 'xml'>
+                <form>
+                    <group>
+                        <group>
+                            <field name = 'session'/>
+                            <!--<field name = 'group'/>-->
+                            <field name = 'member'/>
+                            <field name = 'fine'/>
+                            <field name = 'amount'/>
+                        </group>
+                        <group></group>
+                    </group>
+                    <footer>
+                        <button name = 'charge' type = 'object' string = 'Fine Member' class = 'oe_highlight'/> or
+                        <button special = "cancel" string = "Cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window id = "launch_table_fines_wizard"
+            name = "Table Session Fines"
+            src_model = "microfinance.table"
+            res_model = "microfinance.table.fines"
+            view_mode = "form"
+            target = "new"
+            key2 = "client_action_multi" />
     </data>
 </openerp>
