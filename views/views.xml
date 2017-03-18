@@ -17,7 +17,7 @@
                                 <field name = 'no'/>
                                 <field name = 'name'/>
                                 <field name = 'application_date'/>
-                                <field name = 'table_session_id' string = 'Group Meeting No.' domain="[('field_officer','=',user_id)]"/>
+                                <field name = 'table_session_id' string = 'Group Meeting No.' domain="[('field_officer','=',user_id),('state','!=','closed')]"/>
                                 <field name = 'group_id'/>
                                 <field name = 'user_id'/>
                                 <field name = 'created'/>
@@ -272,14 +272,14 @@
                     <header>
                         <button name = 'generate_schedule' type = 'object' string = 'Generate Schedule' class = 'oe_highlight'/>
                         <button name = '%(launch_loan_posting_wizard)d' type = 'action'
-                       context="{'default_loan':id, 'default_amount':approved_amount,}" string = 'Post' class = 'oe_highlight'/>
+                       context="{'default_loan':id, 'default_amount':approved_amount,'default_loan_category':loan_category}" string = 'Post' class = 'oe_highlight'/>
                     </header>
                     <sheet>
                         <group>
                             <group>
                                 <field name = 'name'/>
                                 <field name = 'application_date'/>
-                                <field name = 'table_session_id' domain="[('field_officer','=',user_id)]"/>
+                                <field name = 'table_session_id' domain="[('field_officer','=',user_id),('state','!=','closed')]"/>
                                 <field name = 'group' /><!--invisible = '1'-->
                                 <field name = 'member_no' string = 'Member' domain="[('group_id','=',group)]"/>
                                 <field name = 'posted'/>
@@ -336,7 +336,7 @@
                     <field name = 'name'/>
                     <field name = 'application_date'/>
                     <field name = 'member_no'/>
-                    <field name = 'member_name'/>
+                    <!--<field name = 'member_name'/>-->
                     <field name = 'approved_amount'/>
                 </tree>
             </field>
@@ -516,6 +516,18 @@
                                     </tree>
                                 </field>
                             </page>
+                            <page string = 'Fees and Charges'>
+                                <field name = 'fees'>
+                                    <tree editable = 'bottom'>
+                                        <field name = 'name'/>
+                                        <field name = 'transaction_type'/>
+                                        <field name = 'account'/>
+                                        <field name = 'based_on'/>
+                                        <field name = 'percentage'/>
+                                        <field name = 'amount'/>
+                                    </tree>
+                                </field>
+                            </page>
                         </notebook>
                     </sheet>
                 </form>
@@ -546,26 +558,27 @@
                             <group>
                                 <field name = 'name'/>
                                 <field name = 'description'/>
-
                             </group>
                             <group>
                                 <field name = 'interest_rate'/>
                                 <field name = 'installments'/>
                                 <field name = 'repayment_method'/>
-
                             </group>
                         </group>
-                        <!--
                         <notebook>
-                            <page string = 'Inputs'>
-                                <field name = 'loan_product_input_ids'>
-                                    <tree editable = 'top'>
+                            <page string = 'Fees and Charges'>
+                                <field name = 'fees2'>
+                                    <tree editable = 'bottom'>
                                         <field name = 'name'/>
+                                        <field name = 'transaction_type'/>
+                                        <field name = 'account'/>
+                                        <field name = 'based_on'/>
+                                        <field name = 'percentage'/>
+                                        <field name = 'amount'/>
                                     </tree>
                                 </field>
                             </page>
                         </notebook>
-                    -->
                     </sheet>
                 </form>
             </field>
@@ -868,8 +881,9 @@
                   <group>
                      <field name = 'name'/>
                      <field name = 'date'/>
-                     <field name = 'table_session_id' domain="[('field_officer','=',cashier)]"/>
+                     <field name = 'table_session_id' domain="[('field_officer','=',cashier),('state','!=','closed')]"/>
                      <field name = 'group'/>
+                     <field name = 'member' domain="[('group_id','=',group)]"/>
                      <field name = 'bank_code'/>
                      <field name = 'bank_name'/>
                      <field name = 'posted'/>
@@ -887,7 +901,7 @@
                      <field name = 'line_ids' context="{'group':group}">
                      <tree editable = 'bottom'>
                            <field name = 'transaction_type'/>
-                           <field name = 'group'/>
+                           <!--<field name = 'group'/>-->
                            <field name = 'member_no' domain="[('group_id','=',group)]"/>
                            <field name = 'loan_no' domain="[('member_no','=',member_no),('posted','=',1)]"
                               attrs="{'readonly': [['transaction_type', 'not in', ['repayment']]]}"/>
@@ -937,7 +951,10 @@
                    <group>
                        <group>
                            <field name = 'name'/>
-                           <field name = 'date'/>
+                           <!--<field name = 'date'/>-->
+                           <field name = 'start_date'/>
+                           <field name = 'end_date'/>
+                           <field name = 'location'/>
                            <field name = 'bank'/>
                            <field name = 'group'/>
                            <field name = 'total_revolving_fund'/>
@@ -975,6 +992,7 @@
                                </tree>
                            </field>
                        </page>
+                       <!--
                        <page string = 'Fines and Charges'>
                            <field name = 'charges'>
                                <tree>
@@ -985,6 +1003,7 @@
                                </tree>
                            </field>
                        </page>
+                   -->
                    </notebook>
                </sheet>
            </form>
@@ -1381,6 +1400,18 @@
         <menuitem name = 'Receipts and Payments' id = 'microfinance_transactions_main_menu' parent = 'microfinance_main_menu' sequence = '30'/>
         <menuitem name = 'Receipts' id = 'microfinance_receipts' parent = 'microfinance_transactions_main_menu' action = 'microfinance_receipt_header_action' sequence = '35'/>
 
+        <record model = 'ir.actions.act_window' id = 'microfinance_receipts_history_action'>
+           <field name = 'name'>Posted Receipts</field>
+           <field name = 'res_model'>microfinance.receipt.header</field>
+           <field name = "domain">[('posted','=',1)]</field>
+           <field name = "filter" eval = "True"/>
+           <field name = 'view_type'>form</field>
+           <field name = 'view_mode'>tree,form</field>
+        </record>
+
+        <menuitem name = 'History' id = 'microfinance_transactions_history_main_menu' parent = 'microfinance_transactions_main_menu' sequence = '90'/>
+        <menuitem name = 'Posted Receipts' id = 'microfinance_posted_receipts' parent = 'microfinance_transactions_history_main_menu' action = 'microfinance_receipts_history_action' sequence = '10'/>
+
         <record model = 'ir.actions.act_window' id = 'microfinance_member_reports'>
             <field name = 'name'>Member Analysis</field>
             <field name = 'res_model'>microfinance.member</field>
@@ -1421,6 +1452,8 @@
         <record model = 'ir.actions.act_window' id = 'microfinance_table_action'>
             <field name = 'name'>Table Transactions</field>
             <field name = 'res_model'>microfinance.table</field>
+            <field name = "domain">[('state','!=','closed')]</field>
+            <field name = "filter" eval = "True"/>
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>
         </record>
@@ -1431,6 +1464,8 @@
         <record model = 'ir.actions.act_window' id = 'microfinance_table_history_action'>
             <field name = 'name'>Posted Table Transactions</field>
             <field name = 'res_model'>microfinance.table</field>
+            <field name = "domain">[('state','=','closed')]</field>
+            <field name = "filter" eval = "True"/>
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>
         </record>
@@ -1445,7 +1480,7 @@
             <field name = 'view_mode'>tree,form</field>
         </record>
 
-        <menuitem name = 'Table Charges' id = 'microfinance_table_charges_setup' parent = 'microfinance_table_transactions_main_menu' action = 'microfinance_charges_setup_action' sequence = '20'/>
+        <menuitem name = 'Fines' id = 'microfinance_table_charges_setup' parent = 'microfinance_table_transactions_main_menu' action = 'microfinance_charges_setup_action' sequence = '20'/>
 
         <record model = 'ir.actions.act_window' id = 'microfinance_charges_action'>
             <field name = 'name'>Microfinance Charges</field>

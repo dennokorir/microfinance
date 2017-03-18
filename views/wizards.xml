@@ -8,16 +8,42 @@
                     <group>
                         <group>
                             <field name = 'loan'/>
+                            <field name = 'loan_category'/>
                             <field name = 'paying_bank'/>
-                            <field name = 'paying_account_no'/>
                             <field name = 'amount'/>
-                            <!--<field name = 'net_amount'/>-->
+                            <br/><br/>
+                            <label for="fees" class="oe_edit_only"/>
+                            <h4>
+                                Required:
+                                <field name="fees" class="oe_inline"/>
+                                <br/><br/>
+                                Received:
+                                <field name="amount_received" class="oe_inline"/>
+                            </h4>
                         </group>
                         <group></group>
                     </group>
+                    <notebook>
+                        <page string = 'Applicable Fees'>
+                            <field name = 'table_banking_fees'>
+                                <tree>
+                                    <field name = 'name'/>
+                                    <field name = 'amount'/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string = 'Applicable Fees'>
+                            <field name = 'agribooster_fees'>
+                                <tree>
+                                    <field name = 'name'/>
+                                    <field name = 'amount'/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                     <footer>
                         <button name = 'action_post' type = 'object' string = 'Post' class = 'oe_highlight'/> or
-                        <button special = "Cancel" string = "Cancel"/>
+                        <button special = "cancel" string = "Cancel"/>
                     </footer>
                 </form>
             </field>

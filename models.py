@@ -38,7 +38,6 @@ def next_date(startdate_param):
 
 def calc_interest(amount,installments,interest,repayment_method):
         #this function calculates and returns interest and principal and risk for all calculation methods
-
         principal = 0.0
         interest_calculated = 0.0
         schedule = []
@@ -50,11 +49,9 @@ def calc_interest(amount,installments,interest,repayment_method):
             monthly_balances = []
             for item in monthly_principal:
                 loan_balance -= principal
-            interest_calculated = round((interest/installments),2)
+            interest_calculated = round((principal*interest*0.01),2)
             monthly_interest = [interest_calculated for x in range(1,installments + 1 )]#creates a list of straigt line principals
-
             schedule = [monthly_principal,monthly_interest]
-
         elif repayment_method == 'reducing':
             loan_balance = amount
             principal = round((amount/installments),2)#monthly installments
@@ -368,8 +365,8 @@ class microfinance_loan(models.Model):
     loan_purpose = fields.Text()
     posted = fields.Boolean()
     loan_category = fields.Selection([('table',"Table Banking Loans"),('agri',"Agri-Booster Loans")], default = 'table')
-    loan_type = fields.Many2one('microfinance.loan.types')
-    loan_product = fields.Many2one('microfinance.loan.products')
+    loan_type = fields.Many2one('microfinance.loan.types')#for table banking
+    loan_product = fields.Many2one('microfinance.loan.products')#for agribooster
     installments = fields.Integer()
     scale = fields.Many2one('microfinance.scales')
     interest = fields.Float(string = 'Expected Income')
@@ -511,14 +508,14 @@ class microfinance_loan(models.Model):
                 loan_product = self.env['microfinance.loan.products'].search([('id','=',self.loan_product.id)])
             else:
                 loan_product = self.env['microfinance.loan.types'].search([('id','=',self.loan_type.id)])
-            loan_schedule = calc_interest(self.approved_amount,self.installments,self.interest,loan_product.repayment_method)
+            loan_schedule = calc_interest(self.approved_amount,self.installments,self.interest_rate,loan_product.repayment_method)
             principal = loan_schedule[0]
             interest = loan_schedule[1]
+            self.interest = sum(loan_schedule[1])
             start_date = self.application_date
             installment = 0
             balance = self.approved_amount
             for item in principal:
-
                 installment += 1
                 schedule_period_paid = next_date(start_date)
                 start_date = next_date(start_date)#increment for next loop
@@ -611,7 +608,7 @@ class microfinance_checkoff_lines(models.Model):
     loan_amount = fields.Float()
     amount = fields.Float()
 
-class microfinance_loan_product(models.Model):
+class microfinance_loan_products(models.Model):
     #reserve this for agri-booster loans
     _name = 'microfinance.loan.products'
 
@@ -621,13 +618,29 @@ class microfinance_loan_product(models.Model):
     installments = fields.Integer()
     loan_product_input_ids = fields.One2many('microfinance.loan.product.inputs', 'loan_product')
     repayment_method = fields.Selection([('straight',"Straight")], default = 'straight')
+    fees = fields.One2many('microfinance.loan.fees','header_id')#for agribooster loans
+
 
 class microfinance_loan_types(models.Model):
-    #reserve for normal loans
+    #reserve for normal table banking loans
     _inherit = 'microfinance.loan.products'
     _name = 'microfinance.loan.types'
 
     field = fields.Char()
+    fees2 = fields.One2many('microfinance.loan.fees','header_id2')#for table banking loans
+
+class microfinance_loan_fees(models.Model):
+    _name = 'microfinance.loan.fees'
+
+    header_id = fields.Many2one('microfinance.loan.products')#for agribooster loans
+    header_id2 = fields.Many2one('microfinance.loan.types')#for table banking loans
+    name = fields.Char()
+    transaction_type = fields.Selection([('loan_fees',"Loan Processing Fees")], default = 'loan_fees')
+    account = fields.Many2one('account.account')
+    based_on = fields.Selection([('percentage',"Percentage"),('fixed',"Fixed")], default = 'fixed', requred = True)
+    percentage = fields.Float()
+    amount = fields.Float()
+
 
 class microfinance_loan_product_inputs(models.Model):
     _name = 'microfinance.loan.product.inputs'
@@ -804,6 +817,7 @@ class receipt_header(models.Model):
     date = fields.Date(default=fields.date.today())
     table_session_id = fields.Many2one('microfinance.table')
     group = fields.Many2one('microfinance.group')
+    member = fields.Many2one('microfinance.member')
     bank_code = fields.Many2one('account.journal',domain = [('type','=','bank')])
     bank_name = fields.Char()
     amount_received = fields.Float(compute = 'compute_total')#
@@ -830,6 +844,13 @@ class receipt_header(models.Model):
         #get bank name
         bank = self.env['account.journal'].search([('id','=',self.bank_code.id)])
         self.bank_name = bank.name
+
+
+    @api.onchange('member')
+    def correct_lines(self):
+        lines = self.env['microfinance.receipt.line'].search([('no','=',self.id)])
+        lines.write({'member':self.member.id})
+
 
     @api.one
     def action_post(self):
@@ -1016,6 +1037,11 @@ class receipt_line(models.Model):
     description = fields.Char()
     amount = fields.Float()
 
+    @api.onchange('transaction_type')
+    def get_group(self):
+        self.group = self.no.group.id
+        self.member_no = self.no.member.id
+
 class payment_header(models.Model):
     _name = 'microfinance.payment.header'
 
@@ -1140,7 +1166,10 @@ class microfinance_table(models.Model):
     _name = 'microfinance.table'
 
     name = fields.Char()
-    date = fields.Date()
+    date = fields.Date(default = fields.Date.today())
+    start_date = fields.Datetime(string = 'Starting')
+    end_date = fields.Datetime(string = 'Ending')
+    location = fields.Char()
     bank = fields.Many2one('account.journal',domain = [('type','=','bank')])
     group = fields.Many2one('microfinance.group')
     field_officer = fields.Many2one('res.users', default=lambda self: self.env.user)

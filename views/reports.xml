@@ -1,0 +1,84 @@
+<openerp>
+    <data>
+        <report
+            id = "microfinance_attendance_sheet"
+            model = "microfinance.table"
+            string = "Attendance Sheet"
+            report_type = "qweb-pdf"
+            name = "microfinance.attendance_sheet"
+            file = "microloan.attendance_sheet"
+            attachment_use = "True"
+         />
+
+         <template id = "attendance_sheet">
+            <t t-call = "report.html_container">
+                <t t-call = "report.external_layout">
+                    <div class = "page">
+                        <h2><b>Member Attendance Sheet</b></h2>
+                        <div class="row mt32 mb32" t-if="docs.name">
+                            <div class="col-xs-3" >
+                                <p><strong>No.:</strong></p>
+                                <p><strong>Date:</strong></p>
+                                <p><strong>Group:</strong></p>
+                            </div>
+                            <div class="col-xs-3">
+                                <p t-field="docs.name"/>
+                                <p t-field="docs.date"/>
+                                <p t-field="docs.group"/>
+                            </div>
+                        </div>
+                        <h4><b><em><u>Present</u></em></b></h4>
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody class="invoice_tbody">
+                                <tr t-foreach="docs.attendee_ids" t-as="l">
+                                    <span t-if="l.present == 1">
+                                        <td><span t-field="l.name"/></td>
+                                    </span>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br/><br/><br/>
+                            <h4><b><em><u>Absent With Apology</u></em></b></h4>
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="invoice_tbody">
+                                <tr t-foreach="docs.attendee_ids" t-as="l">
+                                    <span t-if="l.absent == 1">
+                                        <td><span t-field="l.name"/></td>
+                                        <td><span t-field="l.reason"/></td>
+                                    </span>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br/><br/><br/>
+                        <h4><b><em><u>Absent Without Aplogy</u></em></b></h4>
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody class="invoice_tbody">
+                                <tr t-foreach="docs.attendee_ids" t-as="l">
+                                    <span t-if="l.present == 0 and l.absent == 0 ">
+                                        <td><span t-field="l.name"/></td>
+                                    </span>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+</openerp>

@@ -31,6 +31,7 @@
         'views/wizards.xml',
         'views/views.xml',
         'views/sequences.xml',
+        'views/reports.xml',
 
     ],
     # only loaded in demonstration mode

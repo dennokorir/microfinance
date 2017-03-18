@@ -9,10 +9,46 @@ class microfinance_loan_posting(models.TransientModel):
     paying_account_no = fields.Char()
     amount = fields.Float()
     net_amount = fields.Float()
+    loan_category = fields.Selection([('agri',"Agri-Booster Loan"),('table',"Table Banking Loan")])
+    agribooster_fees = fields.One2many('microfinance.loan.fees.wizard','header_id')
+    table_banking_fees = fields.One2many('microfinance.loan.fees.wizard','header_id2')
+    fees = fields.Float(compute = 'calculate_fees')
+    amount_received = fields.Float()
 
     @api.one
     def action_post(self):
         self.loan.action_post(self.paying_bank.id)
+
+    @api.onchange('loan_category')
+    def get_fees(self):
+        if self.loan_category == 'table':
+            self.table_banking_fees.unlink()
+            lines = []
+            loan_type = self.env['microfinance.loan.types'].search([('id','=',self.loan.loan_type.id)])
+            for line in loan_type.fees2:
+                if line.based_on == 'fixed':
+                    val = {'name':line.name,'amount':line.amount}
+                    lines += [val]
+                elif line.based_on == 'percentage':
+                    amount = self.amount * line.percentage * 0.01
+                    val = {'name':line.name,'amount':amount}
+                    lines += [val]
+            self.update({'table_banking_fees':lines})
+
+    @api.one
+    @api.depends('loan_category','agribooster_fees','table_banking_fees')
+    def calculate_fees(self):
+        if self.loan_category == 'table':
+            self.fees = sum(line.amount for line in self.table_banking_fees)
+        elif self.loan_category == 'agri':
+            self.fees = sum(line.amount for line in self.agribooster_fees)
+
+class microfinance_loan_fees_wizard(models.TransientModel):
+    _name = 'microfinance.loan.fees.wizard'
+    header_id = fields.Many2one('microfinance.loan.post')
+    header_id2 = fields.Many2one('microfinance.loan.post')
+    name = fields.Char()
+    amount = fields.Float()
 
 
 class microfinance_member_application_wizard(models.TransientModel):
