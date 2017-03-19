@@ -24,18 +24,22 @@
                         <group></group>
                     </group>
                     <notebook>
-                        <page string = 'Applicable Fees'>
+                        <page string = 'Applicable Fees' attrs="{'invisible': [('loan_category', '!=', 'table')]}">
                             <field name = 'table_banking_fees'>
                                 <tree>
                                     <field name = 'name'/>
+                                    <field name = 'transaction_type'/>
+                                    <field name = 'account'/>
                                     <field name = 'amount'/>
                                 </tree>
                             </field>
                         </page>
-                        <page string = 'Applicable Fees'>
+                        <page string = 'Applicable Fees' attrs="{'invisible': [('loan_category', '!=', 'agri')]}">
                             <field name = 'agribooster_fees'>
                                 <tree>
                                     <field name = 'name'/>
+                                    <field name = 'transaction_type'/>
+                                    <field name = 'account'/>
                                     <field name = 'amount'/>
                                 </tree>
                             </field>

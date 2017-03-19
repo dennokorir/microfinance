@@ -1,5 +1,7 @@
 from openerp import models, fields, api
 from datetime import datetime
+from openerp.exceptions import ValidationError
+
 
 class microfinance_loan_posting(models.TransientModel):
     _name = 'microfinance.loan.post'
@@ -17,7 +19,18 @@ class microfinance_loan_posting(models.TransientModel):
 
     @api.one
     def action_post(self):
-        self.loan.action_post(self.paying_bank.id)
+        if self.amount_received != self.fees:
+            raise ValidationError('Loan Cannot be disbursed without payment of applicable fees!')
+        else:
+            fees = []
+            if self.loan_category == 'table':
+                for line in self.table_banking_fees:
+                    fees.append({'name':line.name, 'amount':line.amount, 'account':line.account.id, 'transaction_type':line.transaction_type})
+            elif self.loan_category == 'agri':
+                for line in self.agribooster_fees:
+                    fees.append({'name':line.name, 'amount':line.amount, 'account':line.account.id, 'transaction_type':line.transaction_type})
+            #raise ValidationError(fees)
+            self.loan.action_post(self.paying_bank.id,fees)
 
     @api.onchange('loan_category')
     def get_fees(self):
@@ -27,13 +40,26 @@ class microfinance_loan_posting(models.TransientModel):
             loan_type = self.env['microfinance.loan.types'].search([('id','=',self.loan.loan_type.id)])
             for line in loan_type.fees2:
                 if line.based_on == 'fixed':
-                    val = {'name':line.name,'amount':line.amount}
+                    val = {'name':line.name,'amount':line.amount, 'account':line.account.id, 'transaction_type':line.transaction_type}
                     lines += [val]
                 elif line.based_on == 'percentage':
                     amount = self.amount * line.percentage * 0.01
-                    val = {'name':line.name,'amount':amount}
+                    val = {'name':line.name,'amount':amount, 'account':line.account.id, 'transaction_type':line.transaction_type}
                     lines += [val]
             self.update({'table_banking_fees':lines})
+        elif self.loan_category == 'agri':
+            self.agribooster_fees.unlink()
+            lines = []
+            loan_product = self.env['microfinance.loan.products'].search([('id','=',self.loan.loan_product.id)])
+            for line in loan_product.fees:
+                if line.based_on == 'fixed':
+                    val = {'name':line.name,'amount':line.amount, 'account':line.account.id, 'transaction_type':line.transaction_type}
+                    lines += [val]
+                elif line.based_on == 'percentage':
+                    amount = self.amount * line.percentage * 0.01
+                    val = {'name':line.name,'amount':amount, 'account':line.account.id, 'transaction_type':line.transaction_type}
+                    lines += [val]
+            self.update({'agribooster_fees':lines})
 
     @api.one
     @api.depends('loan_category','agribooster_fees','table_banking_fees')
@@ -48,6 +74,8 @@ class microfinance_loan_fees_wizard(models.TransientModel):
     header_id = fields.Many2one('microfinance.loan.post')
     header_id2 = fields.Many2one('microfinance.loan.post')
     name = fields.Char()
+    account = fields.Many2one('account.account')
+    transaction_type = fields.Selection([('loan_fees',"Loan Processing Fees")])
     amount = fields.Float()
 
 

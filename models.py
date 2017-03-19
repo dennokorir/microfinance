@@ -420,7 +420,7 @@ class microfinance_loan(models.Model):
             self.interest_balance = sum(ledger.amount for ledger in ledgers if ledger.transaction_type == 'interest')
 
     @api.one
-    def action_post(self, paying_bank):
+    def action_post(self, paying_bank,fees):
         if not self.posted:
             #date
             if self.application_date:
@@ -446,8 +446,6 @@ class microfinance_loan(models.Model):
 
             journal_lines = self.env['account.move.line']
 
-            #loans = self.env['microfinance.loan'].search([('batch_no','=',self.id)])
-
             member_ledger = self.env['microfinance.member.ledger.entry']
             #get last entry no
             ledgers = self.env['microfinance.member.ledger.entry'].search([])
@@ -458,21 +456,31 @@ class microfinance_loan(models.Model):
                 entryno = 0
 
             #get required accounts for the transaction
-
-            #setup = self.env['microfinance.setup'].search([('id','=',1)])
             loan_acc = setup.loans_account.id
             bank = self.env['res.partner.bank'].search([('bank','=',paying_bank)])
             bank_acc = bank.journal_id.default_credit_account_id.id
             loan_interest_acc = setup.loan_interest_acc.id
             loan_interest_receivable_acc = setup.loan_interest_receivable_acc.id
-            #loan_processing_fee_acc = setup.loan_processing_fee_acc.id
-            #processing_rate = setup.processing_rate
 
-            #this section allows for any charges applicable to your loan to be made
-            #processing_fee = 0.0
-            #processing_fee = (processing_rate*0.01)*self.approved_amount
+            #receipt processing fees and create table transactions
+            for line in fees:
+                #post fees journal
+                #raise ValidationError(fees)
+                journal_lines.create({'journal_id':journal.id,'period_id':period_id,'date':today,'name':self.name +'::'+ line['name'] +'::'+ self.member_no.name,'account_id':bank_acc,'move_id':move_id,'debit':line['amount']})
+                journal_lines.create({'journal_id':journal.id,'period_id':period_id,'date':today,'name':self.name +'::'+ line['name'] +'::'+ self.member_no.name,'account_id':line['account'],'move_id':move_id,'credit':line['amount']})
+
+                #create member ledger transaction
+                entryno += 1
+                #fees
+                member_ledger.create({'member_no':self.member_no.id,'member_name':self.member_no.name,'date':today,'transaction_no':self.name,'transaction_name':self.name + '::' + line['name'],'amount':line['amount'],
+                'transaction_type':line['transaction_type'],'entryno':entryno,'group_no':self.group.id, 'group_name':self.group.name,'date':today})
+
+                #create table transaction
+                #create_transaction(self,header_id, transaction_type, group, member, amount, direction)
+                self.table_session_id.create_transaction(self.table_session_id.id,line['transaction_type'],self.member_no.group_id.id, self.member_no.id, line['amount'],'inward')
+
+            #post loan disbursement
             amount_to_disburse = 0.0
-            #amount_to_disburse = self.approved_amount# - processing_fee
             interest = 0.0
             interest = self.interest#approved_amount*self.loan_type.interest_rate*0.01
             #post loan journal
@@ -786,7 +794,7 @@ class microfinance_member_ledger(models.Model):
     member_name = fields.Char()
     group_no = fields.Many2one('microfinance.group')
     group_name = fields.Char()
-    transaction_type = fields.Selection([('registration',"Registration Fee"),('membership',"Membership Fees"),('penalties',"Penalties"),('fines',"Fines"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan',"loan"),('interest',"Interest")])
+    transaction_type = fields.Selection([('registration',"Registration Fee"),('membership',"Membership Fees"),('penalties',"Penalties"),('fines',"Fines"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan_fees',"Loan Processing Fees"),('loan',"loan"),('interest',"Interest")])
     transaction_no = fields.Char()
     amount = fields.Float()
     dr = fields.Float()
@@ -1300,7 +1308,7 @@ class microfinance_table_line(models.Model):
     _name = 'microfinance.table.lines'
 
     header_id = fields.Many2one('microfinance.table')
-    transaction_type = fields.Selection([('registration',"Registration Fee"),('membership',"Membership Fees"),('penalties',"Penalties"),('fines',"Fines"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan',"Loan"),('loan_repayment',"Loan Repayment"),('membership',"Membership Fees")])
+    transaction_type = fields.Selection([('registration',"Registration Fee"),('membership',"Membership Fees"),('penalties',"Penalties"),('fines',"Fines"),('insurance',"Insurance"),('savings',"Savings"),('deposits',"Share Contribution"),('loan_fees',"Loan Processing Fees"),('loan',"Loan"),('loan_repayment',"Loan Repayment"),('membership',"Membership Fees")])
     group = fields.Many2one('microfinance.group')
     member = fields.Many2one('microfinance.member')
     amount = fields.Float()
