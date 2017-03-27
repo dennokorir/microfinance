@@ -32,6 +32,7 @@
         'views/views.xml',
         'views/sequences.xml',
         'views/reports.xml',
+        'data/data.xml',
 
     ],
     # only loaded in demonstration mode

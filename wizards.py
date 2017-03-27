@@ -7,7 +7,7 @@ class microfinance_loan_posting(models.TransientModel):
     _name = 'microfinance.loan.post'
 
     loan = fields.Many2one('microfinance.loan')
-    paying_bank = fields.Many2one('res.bank')
+    paying_bank = fields.Many2one('res.bank', required = True)
     paying_account_no = fields.Char()
     amount = fields.Float()
     net_amount = fields.Float()
@@ -99,7 +99,7 @@ class microfinance_table_fines_wizard(models.TransientModel):
     group = fields.Many2one('microfinance.group')
     member = fields.Many2one('microfinance.member')
     fine = fields.Many2one('microfinance.charges.setup')
-    bank = fields.Many2one('account.journal',domain = [('type','=','bank')])
+    bank = fields.Many2one('account.journal',domain = [('type','=','bank')], required = True)
     amount = fields.Float()
 
     @api.onchange('fine')
@@ -156,6 +156,39 @@ class microfinance_table_fines_wizard(models.TransientModel):
 
         move.post()
 
+class microfinance_penalty_wizard(models.TransientModel):
+    _name = 'microfinance.penalty.wizard.header'
 
+    table_session_id = fields.Many2one('microfinance.table', string = 'Meeting No.')
+    group = fields.Many2one('microfinance.group')
+    date = fields.Date()
+    amount = fields.Float()
+    line_ids = fields.One2many('microfinane.penalty.wizard.lines','header_id')
 
+    @api.onchange('table_session_id')
+    def get_penalties(self):
+        lines = []
+        for member in self.table_session_id.group.group_members:
+            penalties = self.env['microfinance.table.penalties'].search([('header_id','=',self.table_session_id.id),('member_name','=',member.id)])
+            if len(penalties)>0:
+                opening_balance = sum(line.opening_balance for line in penalties)
+                interest_penalty = sum(line.interest for line in penalties)
+                principal_penalty = sum(line.principal for line in penalties)
+                amount = principal_penalty + interest_penalty
+                val = {'member_no':member.no,'member_name':member.name, 'opening_balance':opening_balance, 'amount':amount}
+                lines += [val]
+        self.update({'line_ids':lines})
 
+    @api.one
+    def action_post(self):
+        self.table_session_id.state = 'bank_out'
+
+class microfinance_penalty_wizard_lines(models.TransientModel):
+    _name = 'microfinane.penalty.wizard.lines'
+
+    header_id = fields.Many2one('microfinance.penalty.wizard.header')
+    member_no = fields.Char()
+    member_name = fields.Many2one('microfinance.member')
+    opening_balance = fields.Float(string = 'Penalties B/F')
+    amount = fields.Float()
+    paid = fields.Float()

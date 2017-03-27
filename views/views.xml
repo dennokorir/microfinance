@@ -12,6 +12,7 @@
                         <field name = 'state' widget = 'statusbar'/>
                     </header>
                     <sheet>
+                        <field name = 'image' widget="image" class="oe_left oe_avatar"/>
                         <group>
                             <group>
                                 <field name = 'no'/>
@@ -138,14 +139,18 @@
                         <field name = 'state' widget = 'statusbar'/>
                     </header>
                     <sheet>
+                        <field name = 'image' widget="image" class="oe_left oe_avatar"/>
+                        <div class="oe_right oe_button_box" name="buttons">
+                            <button name = '%(microfinance_member_stats_action)d' class = "oe_inline oe_stat_button" type = 'action' icon="fa-bar-chart-o" context="{'search_default_member_no':active_id}">
+                                <field name = 'entries' string = "Member Stats" widget = 'statinfo'/>
+                            </button>
+                        </div>
                         <group>
                             <group>
                                 <field name = 'no'/>
                                 <field name = 'name'/>
                                 <field name = 'registration_date'/>
                                 <field name = 'group_id'/>
-                                <!--<field name = 'employer_code'/>
-                                <field name = 'staff_no'/>-->
                             </group>
                             <group>
                                 <field name = 'id_no'/>
@@ -168,6 +173,9 @@
                                         <field name = 'balance' sum="balance"/>
                                     </tree>
                                 </field>
+                            </page>
+                            <page string = 'Member Stats'>
+
                             </page>
                         </notebook>
                     </sheet>
@@ -228,8 +236,21 @@
                                 <field name = 'signatories'/>
                             </group>
                         </group>
-                        <label for = 'group_members'/>
-                        <field name = 'group_members' readonly = '1'/>
+                        <notebook>
+                            <page string = 'Members'>
+                                <label for = 'group_members'/>
+                                <field name = 'group_members' readonly = '1'/>
+                            </page>
+                            <page string = 'Group Settings'>
+                                <group>
+                                    <group string = 'Penalties'>
+                                        <field name = 'principal_penalty_percentage'/>
+                                        <field name = 'interest_penalty_percentage'/>
+                                    </group>
+                                    <group></group>
+                                </group>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>
@@ -270,9 +291,13 @@
             <field name = 'arch' type = 'xml'>
                 <form>
                     <header>
-                        <button name = 'generate_schedule' type = 'object' string = 'Generate Schedule' class = 'oe_highlight'/>
+                        <button name = 'confirm' type = 'object' string = 'Confirm' class = 'oe_highlight' states = 'draft'/>
+                        <button name = 'appraise_loan' type = 'object' string = 'Appraise Loan' class = 'oe_highlight' states = 'appraisal'/>
+                        <button name = 'reset_to_draft' type = 'object' string = 'Reset to Draft' states = 'appraisal,ready'/>
+                        <button name = 'generate_schedule' type = 'object' string = 'Generate Schedule' class = 'oe_highlight' states = 'appraisal,ready'/>
                         <button name = '%(launch_loan_posting_wizard)d' type = 'action'
-                       context="{'default_loan':id, 'default_amount':approved_amount,'default_loan_category':loan_category}" string = 'Post' class = 'oe_highlight'/>
+                       context="{'default_loan':id, 'default_amount':approved_amount,'default_loan_category':loan_category}" string = 'Post' class = 'oe_highlight' states = 'ready'/>
+                       <field name = 'state' widget = 'statusbar'/>
                     </header>
                     <sheet>
                         <group>
@@ -293,6 +318,8 @@
                                 <field name = 'interest' string = 'Interest Charged'/>
                                 <field name = 'balance' string = 'Principal Balance'/>
                                 <field name = 'interest_balance'/>
+                                <field name = 'balance_due'/>
+                                <field name = 'interest_due'/>
                             </group>
                             <group attrs="{'invisible': [('loan_category', '!=', 'table')]}">
                                 <field name = 'loan_type'/>
@@ -314,11 +341,24 @@
                                         <field name = 'installment'/>
                                         <field name = 'period_paid'/>
                                         <field name = 'loan_balance'/>
-                                        <field name = 'principal'/>
-                                        <field name = 'interest'/>
-                                        <field name = 'total'/>
+                                        <field name = 'principal' sum = 'principal'/>
+                                        <field name = 'interest' sum = 'interest'/>
+                                        <field name = 'total' sum = 'total'/>
                                         <field name = 'principal_paid'/>
                                         <field name = 'interest_paid'/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string = 'Guarantors'>
+                                <field name = 'guarantor_ids'>
+                                    <tree editable = 'bottom'>
+                                        <field name = 'header_id' invisible = '1'/>
+                                        <field name = 'group' invisible = '1'/>
+                                        <field name = 'name' domain="[('group_id','=',group)]"/>
+                                        <field name = 'date'/>
+                                        <field name = 'shares'/>
+                                        <field name = 'amount' sum = 'amount'/>
+                                        <field name = 'percentage' sum = 'percentage'/>
                                     </tree>
                                 </field>
                             </page>
@@ -505,6 +545,7 @@
                             <group>
                                 <field name = 'installments'/>
                                 <field name = 'repayment_method'/>
+                                <field name = 'share_multiplier'/>
 
                             </group>
                         </group>
@@ -563,6 +604,7 @@
                                 <field name = 'interest_rate'/>
                                 <field name = 'installments'/>
                                 <field name = 'repayment_method'/>
+                                <field name = 'share_multiplier'/>
                             </group>
                         </group>
                         <notebook>
@@ -843,13 +885,14 @@
                 <tree>
                     <field name = 'entryno'/>
                     <field name = 'date'/>
-                    <field name = 'member_no'/>
-                    <field name = 'member_name'/>
-                    <field name = 'group_no'/>
-                    <!--<field name = 'group_name'/>-->
-                    <field name = 'transaction_type'/>
                     <field name = 'transaction_no'/>
+                    <field name = 'member_no'/>
+                    <field name = 'group_no'/>
+                    <field name = 'transaction_type'/>
+                    <field name = 'transaction_name'/>
                     <field name = 'amount'/>
+                    <!--<field name = 'member_name'/>-->
+                    <!--<field name = 'group_name'/>-->
                     <!--<field name = 'dr'/>
                     <field name = 'cr'/>-->
                 </tree>
@@ -867,6 +910,16 @@
             </field>
         </record>
 
+        <record model = 'ir.ui.view' id = 'microfinance_member_ledger_entry_search_view'>
+           <field name = 'name'>Microfinance Member Ledger Search</field>
+           <field name = 'model'>microfinance.member.ledger.entry</field>
+           <field name = 'arch' type = 'xml'>
+               <search>
+                   <field name = 'member_no'/>
+               </search>
+           </field>
+        </record>
+
 
         <record model = 'ir.ui.view' id = 'microfinance_receipt_form_view'>
       <field name = 'name'>Receipts</field>
@@ -882,16 +935,14 @@
                      <field name = 'name'/>
                      <field name = 'date'/>
                      <field name = 'table_session_id' domain="[('field_officer','=',cashier),('state','!=','closed')]"/>
-                     <field name = 'group'/>
-                     <field name = 'member' domain="[('group_id','=',group)]"/>
+                     <field name = 'group' invisible = '1'/>
+                     <field name = 'member' domain="[('group_id','=',group)]" string = "Received From"/>
                      <field name = 'bank_code'/>
-                     <field name = 'bank_name'/>
                      <field name = 'posted'/>
                   </group>
                   <group>
                      <field name = 'amount_received'/>
                      <field name = 'amount_words'/>
-                     <field name = 'received_from'/>
                      <field name = 'cashier'/>
                   </group>
                </group>
@@ -901,8 +952,8 @@
                      <field name = 'line_ids' context="{'group':group}">
                      <tree editable = 'bottom'>
                            <field name = 'transaction_type'/>
-                           <!--<field name = 'group'/>-->
-                           <field name = 'member_no' domain="[('group_id','=',group)]"/>
+                           <field name = 'group' invisible = '1'/>
+                           <field name = 'member_no' domain="[('group_id','=',group)]" invisible = '1'/>
                            <field name = 'loan_no' domain="[('member_no','=',member_no),('posted','=',1)]"
                               attrs="{'readonly': [['transaction_type', 'not in', ['repayment']]]}"/>
                            <!--<field name = 'description'/>-->
@@ -921,8 +972,7 @@
       <field name = 'arch' type = 'xml'>
          <tree>
             <field name = 'name'/>
-            <field name = 'received_from'/>
-
+            <field name = 'member' string = 'Received From'/>
             <field name = 'amount_received'/>
             <field name = 'date'/>
             <field name = 'posted'/>
@@ -936,10 +986,12 @@
        <field name = 'arch' type = 'xml'>
            <form>
                <header>
-                <button name = 'confirm' type = 'object' string = 'Confirm' confirm = 'Confirm Transactions?' class = 'oe_highlight'/>
-                    <button name = 'get_attendance_manually' type = 'object' string = 'Get Attendance' confirm = 'Get Attendance List?' class = 'oe_highlight'/>
-                    <button name = 'close_session' type = 'object' string = 'Close Session' confirm = 'Close Session?' class = 'oe_highlight'/>
-                    <button name = 'reset' type = 'object' string = 'Reset to Draft' confirm = 'Reset this Session?' class = 'oe_highlight'/>
+                <button name = 'bank_in' type = 'object' string = 'Bank In' confirm = 'Bank In?' class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['bank_in'])]}"/>
+                <button name = 'confirm_transactions' type = 'object' string = 'Confirm Transactions' confirm = 'Confirm Transactions?' class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['open'])]}"/>
+                <button name = 'process_penalties' type = 'object' string = 'Process Penalties' class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['penalties'])]}"/>
+                <button name = '%(launch_table_penalties_wizard)d' type = 'action' string = 'Confirm Penalties'  class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['penalties'])]}" context="{'default_table_session_id':active_id,'default_group':group}"/>
+                <button name = 'bank_out' type = 'object' string = 'Bank Out' confirm = 'Bank Out?' class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['bank_out'])]}"/>
+                <button name = 'reset' type = 'object' string = 'Reset to Draft'/>
                    <field name = 'state' widget = 'statusbar'/>
                </header>
                <sheet>
@@ -992,18 +1044,19 @@
                                </tree>
                            </field>
                        </page>
-                       <!--
-                       <page string = 'Fines and Charges'>
-                           <field name = 'charges'>
+                       <page string = 'Penalties'>
+                           <field name = 'penalty_ids'>
                                <tree>
-                                   <field name = 'member'/>
-                                   <field name = 'charge_type'/>
-                                   <field name = 'account'/>
-                                   <field name = 'amount' sum = 'amount'/>
+                                   <field name = 'member_no'/>
+                                   <field name = 'member_name'/>
+                                   <field name = 'loan'/>
+                                   <field name = 'opening_balance'/>
+                                   <field name = 'principal'/>
+                                   <field name = 'interest'/>
+                                   <field name = 'amount'/>
                                </tree>
                            </field>
                        </page>
-                   -->
                    </notebook>
                </sheet>
            </form>
@@ -1514,7 +1567,12 @@
             <field name = 'view_mode'>graph,tree</field>
         </record>
 
-
+        <record model = 'ir.actions.act_window' id = 'microfinance_member_stats_action'>
+            <field name = 'name'>Member Stats</field>
+            <field name = 'res_model'>microfinance.member.ledger.entry</field>
+            <field name = 'view_type'>form</field>
+            <field name = 'view_mode'>graph,tree</field>
+        </record>
 
     </data>
 </openerp>

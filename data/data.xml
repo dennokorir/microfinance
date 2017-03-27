@@ -1,0 +1,7 @@
+<openerp>
+    <data noupdate = '1'>
+        <record model = 'microfinance.guarantor.committment' id = 'sample_record'>
+            <field name = 'entryno'>0</field>
+        </record>
+    </data>
+</openerp>

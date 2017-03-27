@@ -69,7 +69,7 @@
           <field name = "name">Table Session Numbers</field>
           <field name = "code">microfinance.table.session</field>
           <field name = "prefix">MEETING</field>
-          <field name = "padding">4</field>
+          <field name = "padding">6</field>
         </record>
     </data>
 </openerp>

@@ -1,10 +1,3 @@
-data = [
-        {'name':'Denis Korir','amount':500},
-        {'name':'James Mwaniki','amount':500},
-        {'name':'Peter Kimani','amount':500},
-        {'name':'Peru Senray','amount':500}
-        ]
-
-print(type(data))
-for line in data:
-    print(line['name'] + '::' + str(line['amount']))
+no = 'MEMBER0001'
+name = 'Denis Korir'
+print('Member No. :%s , Name: %s does not meet minimum criteria for this loan' % (no,name))

@@ -80,5 +80,71 @@
                 </t>
             </t>
         </template>
+
+
+        <!--Loan Committment Report-->
+        <report
+            id = "microfinance_guarantor_committment_report"
+            model = "microfinance.member"
+            string = "Guarantor Committment Report"
+            report_type = "qweb-pdf"
+            name = "microfinance.guarantor_committment_report"
+            file = "microloan.guarantor_committment_report"
+            attachment_use = "True"
+         />
+
+         <template id = "guarantor_committment_report">
+            <t t-call = "report.html_container">
+                <t t-call = "report.external_layout">
+                    <div class = "page">
+                        <h2><b>Member Guarantee Committments</b></h2>
+                        <div class="row mt32 mb32" t-if="docs.name">
+                            <div class="col-xs-3" >
+                                <p><strong>No.:</strong></p>
+                                <p><strong>Name:</strong></p>
+                                <p><strong>Group:</strong></p>
+                            </div>
+                            <div class="col-xs-3">
+                                <p t-field="docs.no"/>
+                                <p t-field="docs.name"/>
+                                <p t-field="docs.group_id"/>
+                            </div>
+                        </div>
+                        <h4><b><em><u>Loans and Committments</u></em></b></h4>
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="invoice_tbody">
+                                <tr t-foreach="docs.loan_ids" t-as="l">
+                                    <table class="table table-condensed">
+                                        <thead>
+                                            <tr>
+                                                <th><span t-field="l.name"/></th>
+                                                <th><span t-field="l.approved_amount"/></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="invoice_tbody">
+                                            <tr t-foreach="l.committments" t-as="c">
+                                                <td><span t-field="c.entryno"/></td>
+                                                <td><span t-field="c.transaction_no"/></td>
+                                                <td><span t-field="c.amount"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!--
+                                    <td><span t-field="l.name"/></td>
+                                    <td><span t-field="l.approved_amount"/></td>
+                                -->
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </template>
     </data>
 </openerp>
