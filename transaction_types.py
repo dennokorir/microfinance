@@ -5,8 +5,3 @@ membership_checklist_transaction_type =   fields.Selection([('registration',"Reg
 loan_fees_transaction_type =              fields.Selection([('loan_fees',"Loan Processing Fees")])
 
 
-'penalties'
-'savings'
-'deposits'
-'loan'
-'interest'

@@ -992,6 +992,7 @@
                 <button name = '%(launch_table_penalties_wizard)d' type = 'action' string = 'Confirm Penalties'  class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['penalties'])]}" context="{'default_table_session_id':active_id,'default_group':group}"/>
                 <button name = 'bank_out' type = 'object' string = 'Bank Out' confirm = 'Bank Out?' class = 'oe_highlight' attrs="{'invisible': [('state', 'not in', ['bank_out'])]}"/>
                 <button name = 'reset' type = 'object' string = 'Reset to Draft'/>
+                <button name = 'get_attendance_manually' type = 'object' string = 'Get Attendance'/>
                    <field name = 'state' widget = 'statusbar'/>
                </header>
                <sheet>
@@ -1312,7 +1313,7 @@
         <record model = 'ir.actions.act_window' id = 'microfinance_group_action'>
             <field name = 'name'>Group Form</field>
             <field name = 'res_model'>microfinance.group</field>
-            <field name = "domain">[('state','=','open')]</field>
+            <field name = "domain">[('state','=','ready')]</field>
             <field name = "filter" eval = "True"/>
             <field name = 'view_type'>form</field>
             <field name = 'view_mode'>tree,form</field>

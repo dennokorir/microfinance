@@ -263,7 +263,7 @@ class microfinance_group_application(models.Model):
     @api.one
     def create_group(self):
         group = self.env['microfinance.group'].create({'name':self.name,'reg_no':self.reg_no,'date_of_registration':self.date_of_registration,'constituency':self.constituency,'district':self.district,'location':self.location,
-            'bank_name':self.bank_name,'bank_branch':self.bank_branch,'account_no':self.account_no,'state':'open'})
+            'bank_name':self.bank_name,'bank_branch':self.bank_branch,'account_no':self.account_no,'state':'ready'})
         group.get_sequence()
         for item in self.group_members:
             member = self.env['microfinance.member'].create({'name':item.name,'gender':item.gender,'dob':item.dob,'id_no':item.id_no,'mobile':item.mobile_no,'email':item.email,'group_id':group.id,'image':self.image})
@@ -663,6 +663,7 @@ class microfinance_guarantors(models.Model):
         total_committments = sum(line.amount for line in committments)
         member = self.env['microfinance.member'].search([('id','=',member)])
         if total_committments + amount > shares:
+            #raise ValidationError(str(total_committments + amount))
             raise ValidationError('Member No.: %s , Name: %s has loan guarantorship committments exceeding their current shares' %(member.no, member.name))
         else:
             return True
